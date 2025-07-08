@@ -90,7 +90,20 @@ module.exports = {
         const status =
           interaction.customId === "mark_done" ? "✅ Udført" : "❌ Ikke udført";
 
-        const modal = new ModalBuilder()
+          // Handle event-modal submissions
+if (interaction.isModalSubmit() && interaction.customId === "event_modal") {
+  const eventCmd = client.commands.get("event");
+  if (eventCmd && typeof eventCmd.handleModalSubmit === "function") {
+    try {
+      await eventCmd.handleModalSubmit(interaction);
+    } catch (err) {
+      console.error("Error handling event modal:", err);
+      await interaction.reply({ content: "❌ Der opstod en fejl ved oprettelse af begivenheden.", ephemeral: true });
+    }
+  }
+  return;
+}
+          const modal = new ModalBuilder()
           .setCustomId(`response_modal_${interaction.customId}`)
           .setTitle(
             status === "✅ Udført" ? "Udfør anmodning" : "Afvis anmodning"
