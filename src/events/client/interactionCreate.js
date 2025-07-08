@@ -162,8 +162,11 @@ module.exports = {
         return;
       }
 
-      // Midlertidige voice-kanal knapper
-      if (interaction.isButton() && !interaction.customId.startsWith("s")) {
+// Voice channel control buttons start with: rename_, limit_, kick_, delete_, lock_, unlock_
+if (
+  interaction.isButton() &&
+  /^(rename|limit|kick|delete|lock|unlock)_/.test(interaction.customId)
+) {
         const [action, channelId] = interaction.customId.split("_");
 
         db.get(
