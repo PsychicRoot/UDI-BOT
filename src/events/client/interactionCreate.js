@@ -11,9 +11,9 @@ const sqlite3 = require("sqlite3").verbose();
 
 const db = new sqlite3.Database("./tempvoice.db", (err) => {
   if (err) {
-    console.error("Error connecting to SQLite database:", err.message);
+    console.error("Fejl ved forbindelse til SQLite-database:", err.message);
   } else {
-    console.log("Connected to the SQLite database.");
+    console.log("Forbundet til SQLite-database.");
     db.run(`
             CREATE TABLE IF NOT EXISTS tempChannels (
                 channelId TEXT PRIMARY KEY,
@@ -27,19 +27,19 @@ module.exports = {
   name: "interactionCreate",
   async execute(interaction, client) {
     try {
-      // ✅ Handle autocomplete
+      // ✅ Håndter autocomplete
       if (interaction.isAutocomplete()) {
         const command = client.commands.get(interaction.commandName);
         if (!command || !command.autocomplete) return;
         try {
           await command.autocomplete(interaction);
         } catch (error) {
-          console.error("❌ Autocomplete error:", error);
+          console.error("Autocomplete-fejl:", error);
         }
         return;
       }
 
-      // Handle slash commands
+      // Håndter slash-kommandoer
       if (interaction.isChatInputCommand()) {
         const { commands } = client;
         const { commandName } = interaction;
@@ -51,14 +51,14 @@ module.exports = {
         } catch (error) {
           console.error(error);
           await interaction.reply({
-            content: "Something went wrong while executing this command...",
+            content: "Noget gik galt under udførelsen af denne kommando...",
             ephemeral: true,
           });
         }
         return;
       }
 
-      // Admin buttons (Done / Not Done)
+      // Admin-knapper (Udført / Ikke udført)
       if (
         interaction.isButton() &&
         (interaction.customId === "mark_done" ||
@@ -70,19 +70,19 @@ module.exports = {
         )?.value;
         const requestDescription = embed.description;
         const status =
-          interaction.customId === "mark_done" ? "✅ Done" : "❌ Not Done";
+          interaction.customId === "mark_done" ? "✅ Udført" : "❌ Ikke udført";
 
         const modal = new ModalBuilder()
           .setCustomId(`response_modal_${interaction.customId}`)
           .setTitle(
-            status === "✅ Done" ? "Complete Request" : "Decline Request"
+            status === "✅ Udført" ? "Udfør anmodning" : "Afvis anmodning"
           );
 
         const responseInput = new TextInputBuilder()
           .setCustomId("response_input")
-          .setLabel("Enter your response to the user:")
+          .setLabel("Indtast dit svar til brugeren:")
           .setStyle(TextInputStyle.Paragraph)
-          .setPlaceholder("Provide details or reasoning for your decision...")
+          .setPlaceholder("Angiv detaljer eller begrundelse for din beslutning...")
           .setRequired(true);
 
         const actionRow = new ActionRowBuilder().addComponents(responseInput);
@@ -104,14 +104,14 @@ module.exports = {
             const user = await client.users.fetch(userId);
 
             const responseEmbed = new EmbedBuilder()
-              .setTitle("📢 Change Request Update")
-              .setDescription(`**Your request:** ${requestDescription}`)
+              .setTitle("📢 Opdatering af ændringsanmodning")
+              .setDescription(`**Din anmodning:** ${requestDescription}`)
               .addFields(
-                { name: "Response Status", value: status },
-                { name: "Response:", value: response }
+                { name: "Svarstatus", value: status },
+                { name: "Svar:", value: response }
               )
-              .setColor(status === "✅ Done" ? 0x4caf50 : 0xff4c4c)
-              .setFooter({ text: "Thank you for your feedback!" })
+              .setColor(status === "✅ Udført" ? 0x4caf50 : 0xff4c4c)
+              .setFooter({ text: "Tak for din tilbagemelding!" })
               .setTimestamp();
 
             await user.send({ embeds: [responseEmbed] });
@@ -121,7 +121,7 @@ module.exports = {
                 ...embed.fields,
                 { name: "Status", value: status, inline: true },
               ])
-              .setColor(status === "✅ Done" ? 0x4caf50 : 0xff4c4c);
+              .setColor(status === "✅ Udført" ? 0x4caf50 : 0xff4c4c);
 
             await modalInteraction.update({
               embeds: [updatedEmbed],
@@ -129,14 +129,14 @@ module.exports = {
             });
 
             await modalInteraction.followUp({
-              content: `Response successfully sent to ${user.tag} and request marked as ${status}.`,
+              content: `Svar sendt til ${user.tag} og anmodningen markeret som ${status}.`,
               ephemeral: true,
             });
           } catch (error) {
-            console.error("Error responding to change request:", error);
+            console.error("Fejl ved afsendelse af svar på ændringsanmodning:", error);
             await modalInteraction.reply({
               content:
-                "An error occurred while sending the response to the user.",
+                "Der opstod en fejl under afsendelse af svaret til brugeren.",
               ephemeral: true,
             });
           }
@@ -144,7 +144,7 @@ module.exports = {
         return;
       }
 
-      // Temporary voice channel buttons
+      // Midlertidige voice-kanal knapper
       if (interaction.isButton() && !interaction.customId.startsWith("s")) {
         const [action, channelId] = interaction.customId.split("_");
 
@@ -153,14 +153,14 @@ module.exports = {
           [channelId],
           async (err, tempChannelData) => {
             if (err) {
-              console.error("Error fetching temp channel data:", err.message);
+              console.error("Fejl ved hentning af temp-kanaldata:", err.message);
               return;
             }
 
             if (!tempChannelData) {
               return await interaction.reply({
                 content:
-                  "This temporary channel no longer exists or is not managed by the bot.",
+                  "Denne midlertidige kanal findes ikke længere eller styres ikke af botten.",
                 ephemeral: true,
               });
             }
@@ -171,7 +171,7 @@ module.exports = {
 
             if (!tempChannel) {
               return await interaction.reply({
-                content: "This channel no longer exists.",
+                content: "Denne kanal findes ikke længere.",
                 ephemeral: true,
               });
             }
@@ -180,7 +180,7 @@ module.exports = {
 
             if (!userIsOwner) {
               return await interaction.reply({
-                content: "You are not the owner of this channel.",
+                content: "Du er ikke ejer af denne kanal.",
                 ephemeral: true,
               });
             }
@@ -188,7 +188,7 @@ module.exports = {
             switch (action) {
               case "rename":
                 await interaction.reply({
-                  content: "Please provide a new name for your channel.",
+                  content: "Angiv venligst et nyt navn til din kanal.",
                   ephemeral: true,
                 });
 
@@ -201,13 +201,13 @@ module.exports = {
 
                 renameCollector.on("collect", async (msg) => {
                   await tempChannel.setName(msg.content);
-                  await msg.reply(`✅ Channel renamed to **${msg.content}**.`);
+                  await msg.reply(`✅ Kanalen er omdøbt til **${msg.content}**.`);
                 });
 
                 renameCollector.on("end", (collected) => {
                   if (!collected.size) {
                     interaction.followUp({
-                      content: "⏰ You did not provide a name in time.",
+                      content: "⏰ Du gav ikke et navn i tide.",
                       ephemeral: true,
                     });
                   }
@@ -217,12 +217,12 @@ module.exports = {
               case "limit":
                 await interaction.reply({
                   content:
-                    "Please provide a user limit for your channel (0 = no limit).",
+                    "Angiv venligst en brugergrænse for din kanal (0 = ingen grænse).",
                   ephemeral: true,
                 });
 
                 const limitCollector =
-                  await interaction.channel.createMessageCollector({
+                  interaction.channel.createMessageCollector({
                     filter: (msg) => msg.author.id === interaction.user.id,
                     time: 30000,
                     max: 1,
@@ -232,14 +232,14 @@ module.exports = {
                   const limit = parseInt(msg.content, 10);
                   if (isNaN(limit) || limit < 0) {
                     return msg.reply(
-                      "❌ Invalid number. Please provide a positive number or 0 for no limit."
+                      "❌ Ugyldigt tal. Angiv et positivt tal eller 0 for ingen grænse."
                     );
                   }
 
                   await tempChannel.setUserLimit(limit);
                   await msg.reply(
-                    `✅ User limit set to **${
-                      limit === 0 ? "No Limit" : limit
+                    `✅ Brugergrænse sat til **${
+                      limit === 0 ? "Ingen grænse" : limit
                     }**.`
                   );
                 });
@@ -247,7 +247,7 @@ module.exports = {
                 limitCollector.on("end", (collected) => {
                   if (!collected.size) {
                     interaction.followUp({
-                      content: "⏰ You did not provide a user limit in time.",
+                      content: "⏰ Du gav ikke en brugergrænse i tide.",
                       ephemeral: true,
                     });
                   }
@@ -256,12 +256,12 @@ module.exports = {
 
               case "kick":
                 await interaction.reply({
-                  content: "Please mention the user you want to kick.",
+                  content: "Angiv venligst den bruger, du vil smide ud.",
                   ephemeral: true,
                 });
 
                 const kickCollector =
-                  await interaction.channel.createMessageCollector({
+                  interaction.channel.createMessageCollector({
                     filter: (msg) => msg.author.id === interaction.user.id,
                     time: 30000,
                     max: 1,
@@ -270,17 +270,17 @@ module.exports = {
                 kickCollector.on("collect", async (msg) => {
                   const mentionedUser = msg.mentions.members.first();
                   if (!mentionedUser) {
-                    return msg.reply("❌ Please mention a valid user to kick.");
+                    return msg.reply("❌ Angiv venligst en gyldig bruger at smide ud.");
                   }
 
                   try {
                     await mentionedUser.voice.disconnect();
                     await msg.reply(
-                      `✅ ${mentionedUser.user.tag} has been kicked from the channel.`
+                      `✅ ${mentionedUser.user.tag} er blevet smidt ud af kanalen.`
                     );
                   } catch (err) {
                     await msg.reply(
-                      `❌ Failed to kick the user. ${err.message}`
+                      `❌ Kunne ikke smide brugeren ud. ${err.message}`
                     );
                   }
                 });
@@ -288,7 +288,7 @@ module.exports = {
                 kickCollector.on("end", (collected) => {
                   if (!collected.size) {
                     interaction.followUp({
-                      content: "⏰ You did not mention a user in time.",
+                      content: "⏰ Du nævnte ikke en bruger i tide.",
                       ephemeral: true,
                     });
                   }
@@ -296,9 +296,9 @@ module.exports = {
                 break;
 
               case "delete":
-                await interaction.reply(
-                  "✅ Your temporary channel has been deleted."
-                );
+                await interaction.reply({
+                  content: "✅ Din midlertidige kanal er blevet slettet.",
+                });
                 await tempChannel.delete();
                 db.run(`DELETE FROM tempChannels WHERE channelId = ?`, [
                   channelId,
@@ -314,13 +314,13 @@ module.exports = {
                     }
                   );
                   await interaction.reply({
-                    content: "🔒 The channel is now locked.",
+                    content: "🔒 Kanalen er nu låst.",
                     ephemeral: true,
                   });
                 } catch (err) {
-                  console.error("Error locking the channel:", err);
+                  console.error("Fejl ved låsning af kanalen:", err);
                   await interaction.reply({
-                    content: "❌ Failed to lock the channel.",
+                    content: "❌ Kunne ikke låse kanalen.",
                     ephemeral: true,
                   });
                 }
@@ -335,13 +335,13 @@ module.exports = {
                     }
                   );
                   await interaction.reply({
-                    content: "🔓 The channel is now unlocked.",
+                    content: "🔓 Kanalen er nu låst op.",
                     ephemeral: true,
                   });
                 } catch (err) {
-                  console.error("Error unlocking the channel:", err);
+                  console.error("Fejl ved oplåsning af kanalen:", err);
                   await interaction.reply({
-                    content: "❌ Failed to unlock the channel.",
+                    content: "❌ Kunne ikke låse kanalen op.",
                     ephemeral: true,
                   });
                 }
@@ -349,7 +349,7 @@ module.exports = {
 
               default:
                 await interaction.reply({
-                  content: "Unknown action.",
+                  content: "Ukendt handling.",
                   ephemeral: true,
                 });
             }
@@ -357,7 +357,7 @@ module.exports = {
         );
       }
 
-      // Handle select menu
+      // Håndter select-menu
       if (interaction.isStringSelectMenu()) {
         if (interaction.customId === "select_item") {
           const command = client.commands.get("finditem");
@@ -366,9 +366,9 @@ module.exports = {
           try {
             await command.handleItemSelection(interaction);
           } catch (error) {
-            console.error("Error handling item selection:", error);
+            console.error("Fejl ved behandling af valg:", error);
             await interaction.followUp({
-              content: "An error occurred while processing your selection.",
+              content: "Der opstod en fejl under behandling af dit valg.",
               ephemeral: true,
             });
           }
@@ -377,7 +377,7 @@ module.exports = {
     } catch (error) {
       console.error(error);
       await interaction.reply({
-        content: "An error occurred while processing your request.",
+        content: "Der opstod en fejl under behandling af din anmodning.",
         ephemeral: true,
       });
     }

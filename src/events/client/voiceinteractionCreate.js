@@ -13,9 +13,9 @@ const sqlite3 = require("sqlite3").verbose();
 // Set up the SQLite database
 const db = new sqlite3.Database("./tempvoice.db", (err) => {
   if (err) {
-    console.error("Error connecting to SQLite database:", err.message);
+    console.error("Fejl ved forbindelse til SQLite-database:", err.message);
   } else {
-    console.log("Connected to SQLite database.");
+    console.log("Forbundet til SQLite-database.");
 
     // Create tables if they don't exist
     db.run(
@@ -48,7 +48,7 @@ module.exports = {
       [guildId],
       async (err, row) => {
         if (err) {
-          console.error("Error fetching Create Voice channel:", err.message);
+          console.error("Fejl ved hentning af oprettelseskanal:", err.message);
           return;
         }
 
@@ -63,9 +63,9 @@ module.exports = {
         const guild = newState.guild;
 
         try {
-          // Create a temporary voice channel
+          // Opret midlertidig voice-kanal
           const tempChannel = await guild.channels.create({
-            name: `${user.user.username}'s Channel`,
+            name: `${user.user.username}'s kanal`,
             type: 2, // Voice channel
             parent: newState.channel.parent, // Match category
             permissionOverwrites: [
@@ -84,53 +84,53 @@ module.exports = {
             ],
           });
 
-          // Move user to the new channel
+          // Flyt bruger til den nye kanal
           await user.voice.setChannel(tempChannel);
 
-          // Save the temporary channel's owner in the database
+          // Gem kanalejer i databasen
           db.run(
             `INSERT INTO tempChannels (channelId, ownerId) VALUES (?, ?)`,
             [tempChannel.id, user.id],
             (err) => {
               if (err) {
                 console.error(
-                  "Error saving temp channel to database:",
+                  "Fejl ved lagring af temp-kanal i database:",
                   err.message
                 );
               }
             }
           );
 
-          // Send channel management buttons
+          // Send kanal-styringsknapper
           const interfaceMessage = await tempChannel.send({
-            content: `🔧 **Manage your channel:**`,
+            content: `🔧 **Administrer din kanal:**`,
             components: [
               new ActionRowBuilder().addComponents(
                 new ButtonBuilder()
                   .setCustomId(`rename_${tempChannel.id}`)
-                  .setLabel("📝 Rename")
+                  .setLabel("📝 Omdøb")
                   .setStyle(ButtonStyle.Primary),
                 new ButtonBuilder()
                   .setCustomId(`kick_${tempChannel.id}`)
-                  .setLabel("🚫 Kick Member")
+                  .setLabel("🚫 Smid medlem ud")
                   .setStyle(ButtonStyle.Danger),
                 new ButtonBuilder()
                   .setCustomId(`delete_${tempChannel.id}`)
-                  .setLabel("❌ Delete")
+                  .setLabel("❌ Slet")
                   .setStyle(ButtonStyle.Danger),
                 new ButtonBuilder()
                   .setCustomId(`lock_${tempChannel.id}`)
-                  .setLabel("🔒 Lock")
+                  .setLabel("🔒 Lås")
                   .setStyle(ButtonStyle.Secondary),
                 new ButtonBuilder()
                   .setCustomId(`unlock_${tempChannel.id}`)
-                  .setLabel("🔓 Unlock")
+                  .setLabel("🔓 Lås op")
                   .setStyle(ButtonStyle.Success)
               ),
             ],
           });
 
-          // Monitor the channel for emptiness
+          // Overvåg kanalen for tomhed
           const monitorChannel = setInterval(async () => {
             const fetchedChannel = await guild.channels
               .fetch(tempChannel.id)
@@ -145,12 +145,12 @@ module.exports = {
               await interfaceMessage.delete().catch(console.error);
               clearInterval(monitorChannel);
             } catch (err) {
-              console.error("Error deleting temporary channel:", err.message);
+              console.error("Fejl ved sletning af midlertidig kanal:", err.message);
               clearInterval(monitorChannel);
             }
-          }, 500); // Check every 5 seconds
+          }, 5000); // Tjek hvert 5. sekund
         } catch (error) {
-          console.error("Error creating temporary channel:", error);
+          console.error("Fejl ved oprettelse af midlertidig kanal:", error);
         }
       }
     );
@@ -174,7 +174,7 @@ module.exports = {
 
     if (!tempChannelData) {
       return await interaction.reply({
-        content: "This temporary channel is not managed by the bot.",
+        content: "Denne midlertidige kanal styres ikke af botten.",
         ephemeral: true,
       });
     }
@@ -184,7 +184,7 @@ module.exports = {
       .catch(() => null);
     if (!tempChannel) {
       return await interaction.reply({
-        content: "This channel no longer exists.",
+        content: "Denne kanal findes ikke længere.",
         ephemeral: true,
       });
     }
@@ -192,7 +192,7 @@ module.exports = {
     const isOwner = tempChannelData.ownerId === interaction.user.id;
     if (!isOwner) {
       return await interaction.reply({
-        content: "You are not the owner of this channel.",
+        content: "Du er ikke ejer af denne kanal.",
         ephemeral: true,
       });
     }
@@ -202,12 +202,12 @@ module.exports = {
         case "rename":
           const renameModal = new ModalBuilder()
             .setCustomId(`rename_modal_${channelId}`)
-            .setTitle("Rename Channel")
+            .setTitle("Omdøb kanal")
             .addComponents(
               new ActionRowBuilder().addComponents(
                 new TextInputBuilder()
                   .setCustomId("newChannelName")
-                  .setLabel("Enter the new name for your channel:")
+                  .setLabel("Indtast det nye navn til din kanal:")
                   .setStyle(TextInputStyle.Short)
                   .setMinLength(1)
                   .setMaxLength(100)
@@ -220,12 +220,12 @@ module.exports = {
         case "kick":
           const kickModal = new ModalBuilder()
             .setCustomId(`kick_modal_${channelId}`)
-            .setTitle("Kick Member")
+            .setTitle("Smid medlem ud")
             .addComponents(
               new ActionRowBuilder().addComponents(
                 new TextInputBuilder()
                   .setCustomId("memberToKick")
-                  .setLabel("Mention the member to kick:")
+                  .setLabel("Nævn det medlem, der skal smides ud:")
                   .setStyle(TextInputStyle.Short)
                   .setRequired(true)
               )
@@ -236,12 +236,12 @@ module.exports = {
         case "delete":
           const deleteModal = new ModalBuilder()
             .setCustomId(`delete_modal_${channelId}`)
-            .setTitle("Confirm Deletion")
+            .setTitle("Bekræft sletning")
             .addComponents(
               new ActionRowBuilder().addComponents(
                 new TextInputBuilder()
                   .setCustomId("confirmationInput")
-                  .setLabel("Type 'DELETE' to confirm:")
+                  .setLabel("Skriv 'SLET' for at bekræfte:")
                   .setStyle(TextInputStyle.Short)
                   .setRequired(true)
               )
@@ -257,7 +257,7 @@ module.exports = {
             }
           );
           await interaction.reply({
-            content: "🔒 Channel locked.",
+            content: "🔒 Kanalen er låst.",
             ephemeral: true,
           });
           break;
@@ -270,21 +270,21 @@ module.exports = {
             }
           );
           await interaction.reply({
-            content: "🔓 Channel unlocked.",
+            content: "🔓 Kanalen er låst op.",
             ephemeral: true,
           });
           break;
 
         default:
           await interaction.reply({
-            content: "Unknown action.",
+            content: "Ukendt handling.",
             ephemeral: true,
           });
       }
     } catch (error) {
-      console.error(`Error handling action ${action}:`, error);
+      console.error(`Fejl ved håndtering af handling ${action}:`, error);
       await interaction.reply({
-        content: "An error occurred.",
+        content: "Der opstod en fejl.",
         ephemeral: true,
       });
     }
@@ -310,7 +310,7 @@ module.exports = {
     if (!tempChannelData) {
       return await interaction.reply({
         content:
-          "This temporary channel no longer exists or is not managed by the bot.",
+          "Denne midlertidige kanal findes ikke længere eller styres ikke af botten.",
         ephemeral: true,
       });
     }
@@ -320,7 +320,7 @@ module.exports = {
       .catch(() => null);
     if (!tempChannel) {
       return await interaction.reply({
-        content: "This channel no longer exists.",
+        content: "Denne kanal findes ikke længere.",
         ephemeral: true,
       });
     }
@@ -328,7 +328,7 @@ module.exports = {
     const isOwner = tempChannelData.ownerId === interaction.user.id;
     if (!isOwner) {
       return await interaction.reply({
-        content: "You are not the owner of this channel.",
+        content: "Du er ikke ejer af denne kanal.",
         ephemeral: true,
       });
     }
@@ -340,7 +340,7 @@ module.exports = {
             interaction.fields.getTextInputValue("newChannelName");
           await tempChannel.setName(newChannelName);
           await interaction.reply({
-            content: `Channel renamed to **${newChannelName}**.`,
+            content: `Kanalen er omdøbt til **${newChannelName}**.`,
             ephemeral: true,
           });
           break;
@@ -356,14 +356,14 @@ module.exports = {
 
           if (!member) {
             return await interaction.reply({
-              content: "Member not found in this channel.",
+              content: "Medlem ikke fundet i denne kanal.",
               ephemeral: true,
             });
           }
 
-          await member.voice.disconnect(`Kicked by channel owner`);
+          await member.voice.disconnect(`Smidt ud af kanal ejer`);
           await interaction.reply({
-            content: `${member} has been kicked.`,
+            content: `${member} er blevet smidt ud.`,
             ephemeral: true,
           });
           break;
@@ -371,9 +371,9 @@ module.exports = {
         case "delete_modal":
           const confirmation =
             interaction.fields.getTextInputValue("confirmationInput");
-          if (confirmation !== "DELETE") {
+          if (confirmation !== "SLET") {
             return await interaction.reply({
-              content: "Deletion canceled. Type 'DELETE' to confirm.",
+              content: "Sletning afbrudt. Skriv 'SLET' for at bekræfte.",
               ephemeral: true,
             });
           }
@@ -381,21 +381,21 @@ module.exports = {
           await tempChannel.delete();
           db.run(`DELETE FROM tempChannels WHERE channelId = ?`, [channelId]);
           await interaction.reply({
-            content: "Channel deleted successfully.",
+            content: "Kanalen blev slettet.",
             ephemeral: true,
           });
           break;
 
         default:
           await interaction.reply({
-            content: "Unknown action.",
+            content: "Ukendt handling.",
             ephemeral: true,
           });
       }
     } catch (error) {
-      console.error(`Error handling modal submission ${action}:`, error);
+      console.error(`Fejl ved håndtering af modal-submission ${action}:`, error);
       await interaction.reply({
-        content: "An error occurred.",
+        content: "Der opstod en fejl.",
         ephemeral: true,
       });
     }
