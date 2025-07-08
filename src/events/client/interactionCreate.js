@@ -59,7 +59,7 @@ module.exports = {
       }
 
       // 📅 Håndter knapper fra /event kommando
-      if (interaction.isButton() && /^ja-|^nej-|^maaske-/.test(interaction.customId)) {
+      if (interaction.isButton() && interaction.customId.startsWith("rsvp_")) {
         const eventHandler = client.commands.get("event");
         if (eventHandler && typeof eventHandler.handleButton === "function") {
           try {
