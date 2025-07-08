@@ -1,0 +1,388 @@
+{
+  "legalCommodities": {
+    "Agricium": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Agricultural Supplies": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Aluminum": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Amioshi Plague": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Aphorite": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Astatine": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Audio Visual Equipment": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Beryl": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Bexalite": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Borase": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Chlorine": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Compboard": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Construction Materials": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Copper": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Copper (Ore)": [
+      "Stanton"
+    ],
+    "Corundum": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Degnous Root": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Diamond": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Distilled Spirits": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Dolivine": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Fluorine": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Gold": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Golden Medmon": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Hadanite": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Heart of the Woods": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Helium": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Hephaestanite": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Hydrogen": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Inert Materials": [
+      "Pyro"
+    ],
+    "Iodine": [
+      "Stanton"
+    ],
+    "Iron": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Iron (Ore)": [
+      "Stanton"
+    ],
+    "Janalite": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Laranite": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Luminalia Gift": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Medical Supplies": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Party Favors": [
+      "Stanton"
+    ],
+    "Pitambu": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Processed Food": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Prota": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Quantainium": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Quartz": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Ranta Dung": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Recycled Material Composite": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Revenant Pod": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Revenant Tree Pollen": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Scrap": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Souvenirs": [
+      "Stanton"
+    ],
+    "Stims": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Sunset Berries": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Taranite": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Titanium": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Tungsten": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Waste": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Ammonia": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Quantum Fuel": [
+      "Pyro"
+    ],
+    "Marok Gem": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Kopion Horn": [
+      "Pyro",
+      "Stanton"
+    ],
+    "DynaFlex": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Silicon": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Pressurized Ice": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Carbon": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Tin": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Hydrogen Fuel": [
+      "Pyro"
+    ],
+    "Nitrogen": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Steel": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Cobalt": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Argon": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Bioplastic": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Carbon-Silk": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Methane": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Omnapoxy": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Potassium": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Xa'Pyen": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Diamond Laminate": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Fresh Food": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Partillium": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Stileron": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Mercury": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Riccite": [
+      "Pyro",
+      "Stanton"
+    ],
+    "CK13-GID Seed Blend": [
+      "Pyro"
+    ],
+    "Dymantium": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Ship Ammunition": [
+      "Pyro",
+      "Stanton"
+    ],
+    "HexaPolyMesh Coating": [
+      "Pyro"
+    ],
+    "Atlasium": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Thermalfoam": [
+      "Stanton"
+    ],
+    "Year Of The Pig Envelope": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Beradom": [
+      "Stanton"
+    ],
+    "Glacosite": [
+      "Stanton"
+    ],
+    "Feynmaline": [
+      "Stanton"
+    ]
+  },
+  "illegalCommodities": {
+    "Altruciatoxin": [
+      "Pyro",
+      "Stanton"
+    ],
+    "E'tam": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Gasping Weevil Eggs": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Maze": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Neon": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Osoian Hides": [
+      "Pyro",
+      "Stanton"
+    ],
+    "SLAM": [
+      "Pyro",
+      "Stanton"
+    ],
+    "WiDoW": [
+      "Pyro",
+      "Stanton"
+    ],
+    "Human Food Bars": [
+      "Pyro",
+      "Stanton"
+    ]
+  }
+}
