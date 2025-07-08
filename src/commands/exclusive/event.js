@@ -9,29 +9,34 @@ const {
   
   const { GUILD } = require("../../constants/interactionTypes");
   
-  // In-memory RSVP tracking
-  const eventResponses = new Map();
+  // Helper to get or initialize RSVP store
+  function getEventStore(client) {
+    if (!client.eventResponses) {
+      client.eventResponses = new Map();
+    }
+    return client.eventResponses;
+  }
   
   module.exports = {
     data: new SlashCommandBuilder()
-    .setName("event")
-    .setDescription("Opret en begivenhed med Ja/Nej/Måske valg")
-    .addStringOption((option) =>
-      option.setName("titel").setDescription("Navn på begivenheden").setRequired(true)
-    )
-    .addStringOption((option) =>
-      option.setName("dato").setDescription("Dato for begivenheden (fx 2025-07-10)").setRequired(true)
-    )
-    .addStringOption((option) =>
-      option.setName("tidspunkt").setDescription("Tidspunkt (fx 18:00)").setRequired(true)
-    )
-    .addStringOption((option) =>
-      option.setName("beskrivelse").setDescription("Valgfri beskrivelse").setRequired(false)
-    )  
+      .setName("event")
+      .setDescription("Opret en begivenhed med Ja/Nej/Måske valg")
+      .addStringOption((option) =>
+        option.setName("titel").setDescription("Navn på begivenheden").setRequired(true)
+      )
+      .addStringOption((option) =>
+        option.setName("dato").setDescription("Dato for begivenheden (fx 2025-07-10)").setRequired(true)
+      )
+      .addStringOption((option) =>
+        option.setName("tidspunkt").setDescription("Tidspunkt (fx 18:00)").setRequired(true)
+      )
+      .addStringOption((option) =>
+        option.setName("beskrivelse").setDescription("Valgfri beskrivelse").setRequired(false)
+      )
       .setContexts([GUILD]),
   
     async execute(interaction) {
-      const allowedRoleId = "1388909452115054692"; // Replace with actual role ID
+      const allowedRoleId = "1388909452115054692"; // Replace with your actual role ID
       const member = interaction.member;
   
       if (!member.roles.cache.has(allowedRoleId)) {
@@ -46,6 +51,8 @@ const {
       const description = interaction.options.getString("beskrivelse") || "Ingen beskrivelse.";
       const dato = interaction.options.getString("dato");
       const tidspunkt = interaction.options.getString("tidspunkt");
+  
+      const eventResponses = getEventStore(interaction.client);
   
       const eventId = `${interaction.channel.id}-${Date.now()}`;
       eventResponses.set(eventId, {
@@ -81,7 +88,7 @@ const {
   
       const collector = message.createMessageComponentCollector({
         componentType: ComponentType.Button,
-        time: 1000 * 60 * 60 * 6, // 6 hours
+        time: 1000 * 60 * 60 * 6, // 6 timer
       });
   
       collector.on("end", () => {
@@ -96,9 +103,7 @@ const {
     },
   
     async handleButton(interaction) {
-      const eventId = interaction.customId.split("-")[1];
-      const responseType = interaction.customId.split("-")[0];
-  
+      const [responseType, eventId] = interaction.customId.split("-");
       const embed = interaction.message.embeds[0];
       if (!embed) {
         return interaction.reply({
@@ -107,7 +112,9 @@ const {
         });
       }
   
+      const eventResponses = getEventStore(interaction.client);
       const responses = eventResponses.get(eventId);
+  
       if (!responses) {
         return interaction.reply({
           content: "❌ Event data findes ikke længere eller er udløbet.",
