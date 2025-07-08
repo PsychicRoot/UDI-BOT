@@ -9,11 +9,9 @@ const {
   
   const { GUILD } = require("../../constants/interactionTypes");
   
-  // Helper to get or initialize RSVP store
+  // Shared RSVP store
   function getEventStore(client) {
-    if (!client.eventResponses) {
-      client.eventResponses = new Map();
-    }
+    if (!client.eventResponses) client.eventResponses = new Map();
     return client.eventResponses;
   }
   
@@ -41,7 +39,7 @@ const {
   
       if (!member.roles.cache.has(allowedRoleId)) {
         await interaction.reply({
-          content: `❌ Du har ikke tilladelse til at bruge denne kommando. Kun medlemmer med den nødvendige rolle kan oprette events.`,
+          content: `❌ Du har ikke tilladelse til at bruge denne kommando.`,
           ephemeral: true,
         });
         return;
@@ -71,13 +69,13 @@ const {
           { name: "❔ Måske", value: "Ingen endnu", inline: true }
         )
         .setColor(0x3498db)
-        .setFooter({ text: "Klik på en knap for at angive dit svar" })
+        .setFooter({ text: `eventId:${eventId}` })
         .setTimestamp();
   
       const row = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId(`ja-${eventId}`).setLabel("✅ Ja").setStyle(ButtonStyle.Success),
-        new ButtonBuilder().setCustomId(`nej-${eventId}`).setLabel("❌ Nej").setStyle(ButtonStyle.Danger),
-        new ButtonBuilder().setCustomId(`maaske-${eventId}`).setLabel("❔ Måske").setStyle(ButtonStyle.Secondary)
+        new ButtonBuilder().setCustomId(`rsvp_ja`).setLabel("✅ Ja").setStyle(ButtonStyle.Success),
+        new ButtonBuilder().setCustomId(`rsvp_nej`).setLabel("❌ Nej").setStyle(ButtonStyle.Danger),
+        new ButtonBuilder().setCustomId(`rsvp_maaske`).setLabel("❔ Måske").setStyle(ButtonStyle.Secondary)
       );
   
       const message = await interaction.reply({
@@ -93,9 +91,9 @@ const {
   
       collector.on("end", () => {
         const rowDisabled = new ActionRowBuilder().addComponents(
-          new ButtonBuilder().setCustomId(`ja-${eventId}`).setLabel("✅ Ja").setStyle(ButtonStyle.Success).setDisabled(true),
-          new ButtonBuilder().setCustomId(`nej-${eventId}`).setLabel("❌ Nej").setStyle(ButtonStyle.Danger).setDisabled(true),
-          new ButtonBuilder().setCustomId(`maaske-${eventId}`).setLabel("❔ Måske").setStyle(ButtonStyle.Secondary).setDisabled(true)
+          new ButtonBuilder().setCustomId(`rsvp_ja`).setLabel("✅ Ja").setStyle(ButtonStyle.Success).setDisabled(true),
+          new ButtonBuilder().setCustomId(`rsvp_nej`).setLabel("❌ Nej").setStyle(ButtonStyle.Danger).setDisabled(true),
+          new ButtonBuilder().setCustomId(`rsvp_maaske`).setLabel("❔ Måske").setStyle(ButtonStyle.Secondary).setDisabled(true)
         );
   
         message.edit({ components: [rowDisabled] });
@@ -103,15 +101,15 @@ const {
     },
   
     async handleButton(interaction) {
-      const [responseType, eventId] = interaction.customId.split("-");
+      const responseType = interaction.customId.replace("rsvp_", ""); // ja, nej, maaske
       const embed = interaction.message.embeds[0];
-      if (!embed) {
-        return interaction.reply({
-          content: "Embed kunne ikke findes.",
-          ephemeral: true,
-        });
+  
+      if (!embed || !embed.footer || !embed.footer.text) {
+        return interaction.reply({ content: "❌ Mangler eventId.", ephemeral: true });
       }
   
+      const footerText = embed.footer.text;
+      const eventId = footerText.replace("eventId:", "");
       const eventResponses = getEventStore(interaction.client);
       const responses = eventResponses.get(eventId);
   
