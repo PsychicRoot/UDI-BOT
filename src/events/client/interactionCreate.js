@@ -378,6 +378,16 @@ if (
         );
       }
 
+
+      // Fallback to avoid "This interaction failed" errors
+      if (interaction.isButton() && !interaction.replied && !interaction.deferred) {
+        await interaction.reply({
+          content: "❌ Denne knap kunne ikke håndteres korrekt.",
+          ephemeral: true,
+        });
+        return;
+      }
+
       // Håndter select-menu
       if (interaction.isStringSelectMenu()) {
         if (interaction.customId === "select_item") {
