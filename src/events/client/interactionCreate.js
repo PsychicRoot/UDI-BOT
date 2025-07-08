@@ -14,12 +14,12 @@ const db = new sqlite3.Database("./tempvoice.db", (err) => {
     console.error("Fejl ved forbindelse til SQLite-database:", err.message);
   } else {
     console.log("Forbundet til SQLite-database.");
-    db.run(`
+    db.run(\`
             CREATE TABLE IF NOT EXISTS tempChannels (
                 channelId TEXT PRIMARY KEY,
                 ownerId TEXT NOT NULL
             )
-        `);
+        \`);
   }
 });
 
@@ -27,6 +27,20 @@ module.exports = {
   name: "interactionCreate",
   async execute(interaction, client) {
     try {
+      // Handle event modal submission
+      if (interaction.isModalSubmit() && interaction.customId === "event_modal") {
+        const eventCmd = client.commands.get("event");
+        if (eventCmd && typeof eventCmd.handleModalSubmit === "function") {
+          try {
+            await eventCmd.handleModalSubmit(interaction);
+          } catch (error) {
+            console.error("Error handling event modal:", error);
+            await interaction.reply({ content: "❌ Der opstod en fejl ved oprettelse af begivenheden.", ephemeral: true });
+          }
+        }
+        return;
+      }
+
       // ✅ Håndter autocomplete
       if (interaction.isAutocomplete()) {
         const command = client.commands.get(interaction.commandName);
@@ -74,7 +88,6 @@ module.exports = {
         }
         return;
       }
-      
 
       // Admin-knapper (Udført / Ikke udført)
       if (
@@ -90,20 +103,7 @@ module.exports = {
         const status =
           interaction.customId === "mark_done" ? "✅ Udført" : "❌ Ikke udført";
 
-          // Handle event-modal submissions
-if (interaction.isModalSubmit() && interaction.customId === "event_modal") {
-  const eventCmd = client.commands.get("event");
-  if (eventCmd && typeof eventCmd.handleModalSubmit === "function") {
-    try {
-      await eventCmd.handleModalSubmit(interaction);
-    } catch (err) {
-      console.error("Error handling event modal:", err);
-      await interaction.reply({ content: "❌ Der opstod en fejl ved oprettelse af begivenheden.", ephemeral: true });
-    }
-  }
-  return;
-}
-          const modal = new ModalBuilder()
+        const modal = new ModalBuilder()
           .setCustomId(`response_modal_${interaction.customId}`)
           .setTitle(
             status === "✅ Udført" ? "Udfør anmodning" : "Afvis anmodning"
@@ -175,11 +175,11 @@ if (interaction.isModalSubmit() && interaction.customId === "event_modal") {
         return;
       }
 
-// Voice channel control buttons start with: rename_, limit_, kick_, delete_, lock_, unlock_
-if (
-  interaction.isButton() &&
-  /^(rename|limit|kick|delete|lock|unlock)_/.test(interaction.customId)
-) {
+      // Voice channel control buttons start with: rename_, limit_, kick_, delete_, lock_, unlock_
+      if (
+        interaction.isButton() &&
+        /^(rename|limit|kick|delete|lock|unlock)_/.test(interaction.customId)
+      ) {
         const [action, channelId] = interaction.customId.split("_");
 
         db.get(
@@ -229,191 +229,4 @@ if (
                 const renameCollector =
                   interaction.channel.createMessageCollector({
                     filter: (msg) => msg.author.id === interaction.user.id,
-                    time: 30000,
-                    max: 1,
-                  });
-
-                renameCollector.on("collect", async (msg) => {
-                  await tempChannel.setName(msg.content);
-                  await msg.reply(`✅ Kanalen er omdøbt til **${msg.content}**.`);
-                });
-
-                renameCollector.on("end", (collected) => {
-                  if (!collected.size) {
-                    interaction.followUp({
-                      content: "⏰ Du gav ikke et navn i tide.",
-                      ephemeral: true,
-                    });
-                  }
-                });
-                break;
-
-              case "limit":
-                await interaction.reply({
-                  content:
-                    "Angiv venligst en brugergrænse for din kanal (0 = ingen grænse).",
-                  ephemeral: true,
-                });
-
-                const limitCollector =
-                  interaction.channel.createMessageCollector({
-                    filter: (msg) => msg.author.id === interaction.user.id,
-                    time: 30000,
-                    max: 1,
-                  });
-
-                limitCollector.on("collect", async (msg) => {
-                  const limit = parseInt(msg.content, 10);
-                  if (isNaN(limit) || limit < 0) {
-                    return msg.reply(
-                      "❌ Ugyldigt tal. Angiv et positivt tal eller 0 for ingen grænse."
-                    );
-                  }
-
-                  await tempChannel.setUserLimit(limit);
-                  await msg.reply(
-                    `✅ Brugergrænse sat til **${
-                      limit === 0 ? "Ingen grænse" : limit
-                    }**.`
-                  );
-                });
-
-                limitCollector.on("end", (collected) => {
-                  if (!collected.size) {
-                    interaction.followUp({
-                      content: "⏰ Du gav ikke en brugergrænse i tide.",
-                      ephemeral: true,
-                    });
-                  }
-                });
-                break;
-
-              case "kick":
-                await interaction.reply({
-                  content: "Angiv venligst den bruger, du vil smide ud.",
-                  ephemeral: true,
-                });
-
-                const kickCollector =
-                  interaction.channel.createMessageCollector({
-                    filter: (msg) => msg.author.id === interaction.user.id,
-                    time: 30000,
-                    max: 1,
-                  });
-
-                kickCollector.on("collect", async (msg) => {
-                  const mentionedUser = msg.mentions.members.first();
-                  if (!mentionedUser) {
-                    return msg.reply("❌ Angiv venligst en gyldig bruger at smide ud.");
-                  }
-
-                  try {
-                    await mentionedUser.voice.disconnect();
-                    await msg.reply(
-                      `✅ ${mentionedUser.user.tag} er blevet smidt ud af kanalen.`
-                    );
-                  } catch (err) {
-                    await msg.reply(
-                      `❌ Kunne ikke smide brugeren ud. ${err.message}`
-                    );
-                  }
-                });
-
-                kickCollector.on("end", (collected) => {
-                  if (!collected.size) {
-                    interaction.followUp({
-                      content: "⏰ Du nævnte ikke en bruger i tide.",
-                      ephemeral: true,
-                    });
-                  }
-                });
-                break;
-
-              case "delete":
-                await interaction.reply({
-                  content: "✅ Din midlertidige kanal er blevet slettet.",
-                });
-                await tempChannel.delete();
-                db.run(`DELETE FROM tempChannels WHERE channelId = ?`, [
-                  channelId,
-                ]);
-                break;
-
-              case "lock":
-                try {
-                  await tempChannel.permissionOverwrites.edit(
-                    interaction.guild.roles.everyone,
-                    {
-                      Connect: false,
-                    }
-                  );
-                  await interaction.reply({
-                    content: "🔒 Kanalen er nu låst.",
-                    ephemeral: true,
-                  });
-                } catch (err) {
-                  console.error("Fejl ved låsning af kanalen:", err);
-                  await interaction.reply({
-                    content: "❌ Kunne ikke låse kanalen.",
-                    ephemeral: true,
-                  });
-                }
-                break;
-
-              case "unlock":
-                try {
-                  await tempChannel.permissionOverwrites.edit(
-                    interaction.guild.roles.everyone,
-                    {
-                      Connect: true,
-                    }
-                  );
-                  await interaction.reply({
-                    content: "🔓 Kanalen er nu låst op.",
-                    ephemeral: true,
-                  });
-                } catch (err) {
-                  console.error("Fejl ved oplåsning af kanalen:", err);
-                  await interaction.reply({
-                    content: "❌ Kunne ikke låse kanalen op.",
-                    ephemeral: true,
-                  });
-                }
-                break;
-
-              default:
-                await interaction.reply({
-                  content: "Ukendt handling.",
-                  ephemeral: true,
-                });
-            }
-          }
-        );
-      }
-
-      // Håndter select-menu
-      if (interaction.isStringSelectMenu()) {
-        if (interaction.customId === "select_item") {
-          const command = client.commands.get("finditem");
-          if (!command) return;
-
-          try {
-            await command.handleItemSelection(interaction);
-          } catch (error) {
-            console.error("Fejl ved behandling af valg:", error);
-            await interaction.followUp({
-              content: "Der opstod en fejl under behandling af dit valg.",
-              ephemeral: true,
-            });
-          }
-        }
-      }
-    } catch (error) {
-      console.error(error);
-      await interaction.reply({
-        content: "Der opstod en fejl under behandling af din anmodning.",
-        ephemeral: true,
-      });
-    }
-  },
-};
+                    time
