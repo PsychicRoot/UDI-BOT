@@ -8,7 +8,7 @@ module.exports = {
 
     // Update the bot's "About Me" section
     const aboutMeDescription =
-      "Hobo Utilities is a versatile Star Citizen bot designed to streamline gameplay by leveraging API integrations to fetch and generate real-time data. Currently under active development, it requires minimal setup to customize for your server's needs.";
+      "UDI den nye fronteer";
     try {
       const application = await client.application.fetch(); // Fetch the bot's application info
       await application.edit({
@@ -31,17 +31,12 @@ module.exports = {
     const getActivities = () => [
       {
         type: ActivityType.Streaming,
-        name: `Hobos | ${getTotalUsers()} Total Users`,
+        name: `UDI | ${getTotalUsers()} Antal frihedskæmpere`,
         url: "https://www.twitch.tv/starcitizen", // Streaming URL
       },
       {
         type: ActivityType.Streaming,
-        name: `Part of ${client.guilds.cache.size} servers`,
-        url: "https://www.twitch.tv/starcitizen", // Streaming URL
-      },
-      {
-        type: ActivityType.Streaming,
-        name: "Currently in test phase!",
+        name: "Velkommen!",
         url: "https://www.twitch.tv/starcitizen", // Streaming URL
       },
     ];
