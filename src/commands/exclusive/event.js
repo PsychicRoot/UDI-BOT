@@ -83,7 +83,7 @@ const {
         .setDescription(description)
         .addFields(
           {
-            name: "🗓️ Starttid",
+            name: "🗓️ Start tid",
             value: `<t:${ts}:f> (<t:${ts}:R>)`,
           },
           { name: "✅ Deltager", value: "Ingen endnu", inline: true },
