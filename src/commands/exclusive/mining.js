@@ -69,22 +69,19 @@ const miningData = {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("mining")
-    .setDescription("Get comprehensive mining and refining information")
+    .setDescription("Få omfattende minedrift- og raffineringsinformation")
     .addStringOption((option) => {
-      const choices = Object.keys(miningData).map((c) => ({
-        name: c,
-        value: c,
-      }));
+      const choices = Object.keys(miningData).map((c) => ({ name: c, value: c }));
       return option
         .setName("commodity")
-        .setDescription("Select mining commodity")
+        .setDescription("Vælg handelsvaren")
         .setRequired(true)
         .addChoices(...choices);
     })
     .addIntegerOption((option) =>
       option
         .setName("scu")
-        .setDescription("SCU amount to calculate refining (optional)")
+        .setDescription("SCU-mængde til beregning af raffinering (valgfrit)")
         .setMinValue(1)
     )
     .setContexts([GUILD]),
@@ -93,17 +90,16 @@ module.exports = {
     await interaction.deferReply();
 
     try {
-      // Get token with proper error handling
       const guildId = interaction.guild.id;
       const token = await getToken(guildId).catch((error) => {
-        console.error("Token database error:", error);
-        throw new Error("Failed to retrieve API token from database");
+        console.error("Fejl i token-database:", error);
+        throw new Error("Kunne ikke hente API-token fra databasen");
       });
 
       if (!token) {
         await interaction.editReply({
           content:
-            "❌ No API token configured. Please use `/token <your_token>` to set one.",
+            "❌ Ingen API-token er konfigureret. Brug `/token <din_token>` for at indstille én.",
           ephemeral: true,
         });
         return;
@@ -115,7 +111,7 @@ module.exports = {
 
       if (!miningInfo) {
         await interaction.editReply({
-          content: "❌ Invalid commodity selected",
+          content: "❌ Ugyldig handelsvare valgt.",
           ephemeral: true,
         });
         return;
@@ -123,38 +119,32 @@ module.exports = {
 
       const { miningMethod, refinery, yield: refineYield, note } = miningInfo;
 
-      // API call with proper error handling
       const apiUrl = `https://api.uexcorp.space/2.0/commodities_prices?commodity_name=${encodeURIComponent(
         commodity
       )}`;
       const data = await fetchWithFallback(apiUrl, token).catch((error) => {
         if (error.response) {
-          console.error(
-            "API Error:",
-            error.response.status,
-            error.response.data
-          );
+          console.error("API-fejl:", error.response.status, error.response.data);
           if (error.response.status === 403) {
-            throw new Error("Invalid API token. Please update using `/token`.");
+            throw new Error("Ugyldig API-token. Opdater venligst med `/token`.");
           } else if (error.response.status === 404) {
-            throw new Error("Commodity data not found");
+            throw new Error("Handelsvaredata ikke fundet.");
           } else {
-            throw new Error(`API responded with ${error.response.status}`);
+            throw new Error(`API svarede med ${error.response.status}`);
           }
         } else if (error.request) {
-          console.error("No response received:", error.request);
-          throw new Error("No response from API server");
+          console.error("Ingen svar modtaget:", error.request);
+          throw new Error("Ingen respons fra API-serveren.");
         } else {
-          console.error("Request setup error:", error.message);
-          throw new Error("Failed to setup API request");
+          console.error("Fejl ved opsætning af forespørgsel:", error.message);
+          throw new Error("Kunne ikke opsætte API-forespørgsel.");
         }
       });
 
-      // Handle API response errors
       if (data?.status === "access_denied") {
         await interaction.editReply({
           content:
-            "❌ Invalid API token. Please update using `/token <new_token>`.",
+            "❌ Ugyldig API-token. Opdater venligst med `/token <ny_token>`.",
           ephemeral: true,
         });
         return;
@@ -162,47 +152,45 @@ module.exports = {
 
       if (!data?.data?.length) {
         await interaction.editReply({
-          content: `❌ No market data available for ${commodity}`,
+          content: `❌ Ingen markedsdata tilgængelig for ${commodity}.`,
           ephemeral: true,
         });
         return;
       }
 
-      // Process data
       const bestSell = data.data.reduce(
         (best, entry) =>
           entry.price_sell > (best?.price || 0)
             ? {
                 price: entry.price_sell,
-                location: `${entry.terminal_name || "Terminal"} in ${
+                location: `${entry.terminal_name || "Terminal"} i ${
                   entry.city_name ||
                   entry.planet_name ||
                   entry.star_system_name ||
-                  "Unknown"
+                  "Ukendt"
                 }`,
               }
             : best,
         null
       );
 
-      // Build embed
       const embed = new EmbedBuilder()
-        .setTitle(`⛏️ ${commodity} Mining Report`)
+        .setTitle(`⛏️ ${commodity} minedriftsrapport`)
         .setColor(0x2ecc71)
         .addFields(
-          { name: "━━━━━━━━━  CORE DATA  ━━━━━━━━━", value: "\u200B" },
+          { name: "━━━━━━━━━  KERNEDATA  ━━━━━━━━━", value: "\u200B" },
           {
-            name: "Recommended Mining",
+            name: "Anbefalet minedrift",
             value: `\`\`\`fix\n${miningMethod}\`\`\``,
             inline: true,
           },
           {
-            name: "Refinery Process",
+            name: "Raffineringsproces",
             value: `\`\`\`fix\n${refinery}\`\`\``,
             inline: true,
           },
           {
-            name: "Yield Efficiency",
+            name: "Udbytteeffektivitet",
             value: `\`\`\`fix\n${(refineYield * 100).toFixed(0)}%\`\`\``,
             inline: true,
           }
@@ -210,14 +198,14 @@ module.exports = {
 
       if (bestSell) {
         embed.addFields(
-          { name: "━━━━━━━━━  MARKET DATA  ━━━━━━━━━", value: "\u200B" },
+          { name: "━━━━━━━━━  MARKEDSDATA  ━━━━━━━━━", value: "\u200B" },
           {
-            name: "Best Sell Price",
+            name: "Bedste salgspris",
             value: `\`\`\`diff\n+ ${bestSell.price.toLocaleString()} aUEC\`\`\``,
             inline: true,
           },
           {
-            name: "Sell Location",
+            name: "Salgssted",
             value: `\`\`\`${bestSell.location}\`\`\``,
             inline: true,
           }
@@ -233,26 +221,26 @@ module.exports = {
 
         embed.addFields(
           {
-            name: "━━━━━━━━━  REFINING CALCULATOR  ━━━━━━━━━",
+            name: "━━━━━━━━━  RAFFINERINGSBEREGNER  ━━━━━━━━━",
             value: "\u200B",
           },
           {
-            name: "Raw Material",
+            name: "Råmateriale",
             value: `\`\`\`${scuAmount.toLocaleString()} SCU\`\`\``,
             inline: true,
           },
           {
-            name: "After Refining",
+            name: "Efter raffinering",
             value: `\`\`\`diff\n+ ${refinedSCU.toLocaleString()} SCU\`\`\``,
             inline: true,
           },
           {
-            name: "Material Loss",
+            name: "Materialetab",
             value: `\`\`\`diff\n- ${lostSCU.toLocaleString()} SCU\`\`\``,
             inline: true,
           },
           {
-            name: "Estimated Value",
+            name: "Estimeret værdi",
             value: `\`\`\`diff\n+ ${estimatedValue} aUEC\`\`\``,
             inline: true,
           }
@@ -260,8 +248,8 @@ module.exports = {
       }
 
       embed.addFields(
-        { name: "━━━━━━━━━  NOTES  ━━━━━━━━━", value: "\u200B" },
-        { name: "Special Considerations", value: `\`\`\`${note}\`\`\`` }
+        { name: "━━━━━━━━━  BEMÆRKNINGER  ━━━━━━━━━", value: "\u200B" },
+        { name: "Særlige overvejelser", value: `\`\`\`${note}\`\`\`` }
       );
 
       embed
@@ -273,9 +261,9 @@ module.exports = {
 
       await interaction.editReply({ embeds: [embed] });
     } catch (error) {
-      console.error("Mining command error:", error);
+      console.error("Fejl i /mining-kommandoen:", error);
       await interaction.editReply({
-        content: `❌ Error: ${error.message}`,
+        content: `❌ Fejl: ${error.message}`,
         ephemeral: true,
       });
     }

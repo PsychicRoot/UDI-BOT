@@ -12,7 +12,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName("refreshcommodities")
     .setDescription(
-      "Fetch and save legal/illegal commodities with available systems from UEX API"
+      "Hent og gem lovlige/ulovlige handelsvarer med tilgængelige systemer fra UEX API"
     ),
 
   async execute(interaction) {
@@ -24,7 +24,7 @@ module.exports = {
 
       if (!token) {
         await interaction.editReply(
-          "❌ No API token configured. Use `/token <your_token>` to set one."
+          "❌ Ingen API-token er konfigureret. Brug `/token <din_token>` for at indstille en."
         );
         return;
       }
@@ -33,7 +33,7 @@ module.exports = {
       const listResponse = await fetchWithFallback(listUrl, token);
 
       if (!listResponse?.data || !Array.isArray(listResponse.data)) {
-        throw new Error("Invalid response from commodities list endpoint");
+        throw new Error("Ugyldigt svar fra endpoint for handelsvarerliste");
       }
 
       const legal = {};
@@ -56,13 +56,13 @@ module.exports = {
           systemData = response?.data;
         } catch (e) {
           console.warn(
-            `⚠️ Skipping ${name}, failed to fetch data: ${e.message}`
+            `⚠️ Springer over ${name}, hentning af data mislykkedes: ${e.message}`
           );
           continue;
         }
 
         if (!Array.isArray(systemData) || systemData.length === 0) {
-          console.warn(`⚠️ No system entries for ${name}`);
+          console.warn(`⚠️ Ingen systemposter for ${name}`);
           continue;
         }
 
@@ -95,13 +95,13 @@ module.exports = {
       fs.writeFileSync(filePath, JSON.stringify(output, null, 2));
 
       await interaction.editReply(
-        `✅ Saved ${Object.keys(legal).length} legal and ${
-          Object.keys(illegal).length
-        } illegal commodities with system data.`
+        `✅ Gemte ${Object.keys(legal).length} lovlige og ${Object.keys(illegal).length} ulovlige handelsvarer med systemdata.`
       );
     } catch (error) {
-      console.error("Error refreshing commodity list:", error);
-      await interaction.editReply("❌ Failed to refresh commodity list.");
+      console.error("Fejl ved opdatering af handelsvarelisten:", error);
+      await interaction.editReply(
+        "❌ Opdatering af handelsvarelisten mislykkedes."
+      );
     }
   },
 };

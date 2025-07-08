@@ -167,64 +167,55 @@ const moonData = {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("refuel")
-    .setDescription(
-      "Find outposts to refuel on a specific moon in Stanton or Pyro"
-    )
+    .setDescription("Find udposter til tankning på en specifik måne i Stanton eller Pyro")
     .addStringOption((option) =>
       option
         .setName("moon_name")
-        .setDescription("Enter the name of the moon (Yela, Daymar, Ruin, etc.)")
+        .setDescription("Indtast navnet på månen/planeten (fx Yela, Daymar, Ruin)")
         .setRequired(true)
     ),
 
   async execute(interaction) {
     try {
       await interaction.deferReply();
-      const moonNameInput = interaction.options
-        .getString("moon_name")
-        .toLowerCase();
-      const moonLocations = moonData[moonNameInput];
+
+      const input = interaction.options.getString("moon_name").toLowerCase();
+      const moonLocations = moonData[input];
+      const capitalized = input.charAt(0).toUpperCase() + input.slice(1);
+
       if (!moonLocations) {
         await interaction.editReply({
-          content: `No data found for the moon: **${
-            moonNameInput.charAt(0).toUpperCase() + moonNameInput.slice(1)
-          }**. Please ensure the name is correct.`,
+          content: `❌ Ingen data fundet for månen **${capitalized}**. Sørg for, at navnet er korrekt.`,
         });
         return;
       }
+
       const fields = moonLocations.map((outpost) => ({
         name: outpost.name,
-        value: `**Star System:** ${
-          outpost.starSystem
-        }\n**Services Available:**\n- Refuel: ${
-          outpost.hasRefuel ? "✅ Yes" : "❌ No"
-        }\n- Rearm: ${outpost.hasRearm ? "✅ Yes" : "❌ No"}\n**Pad Types:** ${
-          outpost.padTypes
-        }`,
+        value:
+          `**Stjernesystem:** ${outpost.starSystem}\n` +
+          `**Tilgængelige tjenester:**\n` +
+          `- Tank: ${outpost.hasRefuel ? "✅ Ja" : "❌ Nej"}\n` +
+          `- Ammunitionsgenopfyldning: ${outpost.hasRearm ? "✅ Ja" : "❌ Nej"}\n` +
+          `**Landertyper:** ${outpost.padTypes}`,
         inline: false,
       }));
+
       const embed = new EmbedBuilder()
-        .setTitle(
-          `Refuel Outposts for Moon: ${
-            moonNameInput.charAt(0).toUpperCase() + moonNameInput.slice(1)
-          }`
-        )
-        .setDescription(
-          `Here are the outposts on **${
-            moonNameInput.charAt(0).toUpperCase() + moonNameInput.slice(1)
-          }** where you can refuel.`
-        )
+        .setTitle(`Tanknings outposts for måne: ${capitalized}`)
+        .setDescription(`Her er outposts på **${capitalized}** hvor du kan tanke.`)
         .addFields(fields)
         .setColor(0x007bff)
         .setFooter({
-          text: "This data may not be correct, please let me know | Made By PsychicRoot",
+          text: "Disse data kan være unøjagtige, giv mig besked | Lavet af PsychicRoot",
         })
         .setTimestamp();
+
       await interaction.editReply({ embeds: [embed] });
     } catch (error) {
-      console.error("Unexpected error in /refuel command:", error.message);
+      console.error("Uventet fejl i /refuel-kommandoen:", error.message);
       await interaction.editReply({
-        content: "An unexpected error occurred. Please try again later.",
+        content: "❌ Der opstod en uventet fejl. Prøv igen senere.",
       });
     }
   },
