@@ -28,7 +28,7 @@ module.exports = async (client) => {
     }
   }
 
-  const clientID = "1119065597641228309"; // Ensure your actual bot client ID is used here
+  const clientID = "1388965456047636590"; // Ensure your actual bot client ID is used here
   const rest = new REST().setToken(process.env.token);
 
   try {
@@ -41,7 +41,7 @@ module.exports = async (client) => {
 
     console.log("Successfully reloaded application (/) commands.");
 
-    const channelID = "1318006118957453452"; // Specify your logging channel ID
+    const channelID = "1392176970317430964"; // Specify your logging channel ID
     const channel = await client.channels.fetch(channelID);
 
     // Create and send the embed to log the loaded commands
