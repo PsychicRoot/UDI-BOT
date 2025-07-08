@@ -14,20 +14,20 @@ const {
   
   module.exports = {
     data: new SlashCommandBuilder()
-      .setName("event")
-      .setDescription("Opret en begivenhed med Ja/Nej/Måske valg")
-      .addStringOption((option) =>
-        option.setName("titel").setDescription("Navn på begivenheden").setRequired(true)
-      )
-      .addStringOption((option) =>
-        option.setName("beskrivelse").setDescription("Valgfri beskrivelse").setRequired(false)
-      )
-      .addStringOption((option) =>
-        option.setName("dato").setDescription("Dato for begivenheden (fx 2025-07-10)").setRequired(true)
-      )
-      .addStringOption((option) =>
-        option.setName("tidspunkt").setDescription("Tidspunkt (fx 18:00)").setRequired(true)
-      )
+    .setName("event")
+    .setDescription("Opret en begivenhed med Ja/Nej/Måske valg")
+    .addStringOption((option) =>
+      option.setName("titel").setDescription("Navn på begivenheden").setRequired(true)
+    )
+    .addStringOption((option) =>
+      option.setName("dato").setDescription("Dato for begivenheden (fx 2025-07-10)").setRequired(true)
+    )
+    .addStringOption((option) =>
+      option.setName("tidspunkt").setDescription("Tidspunkt (fx 18:00)").setRequired(true)
+    )
+    .addStringOption((option) =>
+      option.setName("beskrivelse").setDescription("Valgfri beskrivelse").setRequired(false)
+    )  
       .setContexts([GUILD]),
   
     async execute(interaction) {
