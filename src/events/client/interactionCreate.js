@@ -58,22 +58,22 @@ module.exports = {
         return;
       }
 
-            // 📅 Håndter knapper fra /event kommando
-            if (interaction.isButton() && /^ja-|^nej-|^maaske-/.test(interaction.customId)) {
-              const eventHandler = client.commands.get("event");
-              if (eventHandler && typeof eventHandler.handleButton === "function") {
-                try {
-                  await eventHandler.handleButton(interaction);
-                } catch (error) {
-                  console.error("Fejl ved håndtering af event-knap:", error);
-                  await interaction.reply({
-                    content: "❌ Der opstod en fejl ved håndtering af din tilmelding.",
-                    ephemeral: true,
-                  });
-                }
-              }
-              return;
-            }
+      // 📅 Håndter knapper fra /event kommando
+      if (interaction.isButton() && /^ja-|^nej-|^maaske-/.test(interaction.customId)) {
+        const eventHandler = client.commands.get("event");
+        if (eventHandler && typeof eventHandler.handleButton === "function") {
+          try {
+            await eventHandler.handleButton(interaction);
+          } catch (error) {
+            console.error("Fejl ved håndtering af event-knap:", error);
+            await interaction.reply({
+              content: "❌ Der opstod en fejl ved håndtering af din tilmelding.",
+              ephemeral: true,
+            });
+          }
+        }
+        return;
+      }
       
 
       // Admin-knapper (Udført / Ikke udført)
