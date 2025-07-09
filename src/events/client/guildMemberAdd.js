@@ -26,7 +26,8 @@ module.exports = {
           iconURL: `${member.user.displayAvatarURL()}`,
         })
         .setDescription(
-          `Velkommen \`${member.user.username}\` til UDI. Vi håber du får det godt ved os.`
+          `Velkommen \`${member.user.username}\` Du er nu trådt ind i United Danes Initiative (UDI) et dansk fællesskab i Star Citizen, bygget på sammenhold, respekt og ægte rumhygge.
+Her samles vikinger af stjernestøv – nogle miner, nogle kæmper, andre handler, eskorterer, udforsker eller bare hænger ud.`
         )
         .setFooter({ text: `Total Members: ${atlasServer.memberCount}` });
 
