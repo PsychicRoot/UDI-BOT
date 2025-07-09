@@ -9,6 +9,7 @@ module.exports = {
       const welcomeChannelId = "1388966736367194233";
       const atlasServerId = "1388909264327938169";
       const defaultRoleId = "1388913012961968239";
+      const rulesChannelId = "1388915649828622469";
 
       const atlasServer = await client.guilds.cache.get(atlasServerId);
       await atlasServer.members.fetch();
@@ -30,8 +31,7 @@ module.exports = {
           iconURL: `${member.user.displayAvatarURL()}`,
         })
         .setDescription(
-          `Velkommen \`${member.user.username}\` Du er nu trådt ind i United Danes Initiative (UDI) et dansk fællesskab i Star Citizen, bygget på sammenhold, respekt og ægte rumhygge.
-Her samles vikinger af stjernestøv – nogle miner, nogle kæmper, andre handler, eskorterer, udforsker eller bare hænger ud.`
+          `Velkommen \`${member.user.username}\` Du er nu trådt ind i United Danes Initiative (UDI) – et dansk fællesskab i Star Citizen, bygget på sammenhold, respekt og ægte rumhygge.\n\nHer samles vikinger af stjernestøv – nogle miner, nogle kæmper, andre handler, eskorterer, udforsker eller bare hænger ud.\n\n👉 Husk at læse <#${rulesChannelId}> for at kende vores fælles spilleregler.`
         )
         .setFooter({ text: `Total Members: ${atlasServer.memberCount}` });
 
