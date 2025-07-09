@@ -75,13 +75,8 @@ module.exports = {
       "dd-MM-yyyy HH:mm",
       { zone: "Europe/Copenhagen" }
     );
-
-    // Validate parsing
     if (!dt.isValid) {
-      return interaction.reply({
-        content: "❌ Ugyldig dato eller tidspunkt. Brug format DD-MM-YYYY og HH:MM.",
-        ephemeral: true
-      });
+      return interaction.reply({ content: "❌ Ugyldig dato eller tidspunkt. Brug format DD-MM-YYYY og HH:MM.", ephemeral: true });
     }
 
     const eventTimestampMs = dt.toMillis();
@@ -91,8 +86,7 @@ module.exports = {
 
     // Calculate delays
     const reminderDelayMs = eventTimestampMs - nowMs - 30 * 60 * 1000;
-    const collectorDurationMsRaw = eventTimestampMs - nowMs - 40 * 60 * 1000;
-    const collectorDurationMs = collectorDurationMsRaw > 0 ? collectorDurationMsRaw : 0;
+    const closeDelayMs = eventTimestampMs - nowMs - 40 * 60 * 1000;
 
     const eventResponses = getEventStore(interaction.client);
     const eventId = `${interaction.channel.id}-${Date.now()}`;
@@ -118,48 +112,48 @@ module.exports = {
 
     const message = await interaction.reply({ embeds: [embed], components: [row], fetchReply: true });
 
-    // Schedule reminder 30 minutes before
+    // Schedule reminder 30 minutes before (or send immediately if less than 30m away)
     if (reminderDelayMs > 0) {
       setTimeout(async () => {
         const responses = eventResponses.get(eventId);
         for (const userId of responses.ja) {
           try {
             const user = await interaction.client.users.fetch(userId);
-            await user.send(
-              `🔔 Påmindelse: **${title}** starter om 30 minutter: <t:${tsSec}:R>`
-            );
+            await user.send(`🔔 Påmindelse: **${title}** starter om 30 minutter: <t:${tsSec}:R>`);
           } catch (err) {
             console.error("Fejl ved afsendelse af påmindelse:", err);
           }
         }
       }, reminderDelayMs);
+    } else if (eventTimestampMs > nowMs) {
+      // If the event is within the next 30 minutes, send reminder immediately
+      const responses = eventResponses.get(eventId);
+      for (const userId of responses.ja) {
+        try {
+          const user = await interaction.client.users.fetch(userId);
+          await user.send(`🔔 Påmindelse: **${title}** starter snart: <t:${tsSec}:R>`);
+        } catch (err) {
+          console.error("Fejl ved afsendelse af øjeblikkelig påmindelse:", err);
+        }
+      }
     }
 
-    // RSVP collector — close 40 minutes before start
-    const collector = message.createMessageComponentCollector({
-      componentType: ComponentType.Button,
-      time: collectorDurationMs
-    });
+    // RSVP collector
+    const collector = message.createMessageComponentCollector({ componentType: ComponentType.Button });
+
+    // Stop collector 40 minutes before event (or immediately if past)
+    if (closeDelayMs > 0) {
+      setTimeout(() => collector.stop(), closeDelayMs);
+    } else {
+      collector.stop();
+    }
 
     collector.on("end", async () => {
       const disabledRow = new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-          .setCustomId("rsvp_ja")
-          .setLabel("✅ Ja")
-          .setStyle(ButtonStyle.Success)
-          .setDisabled(true),
-        new ButtonBuilder()
-          .setCustomId("rsvp_nej")
-          .setLabel("❌ Nej")
-          .setStyle(ButtonStyle.Danger)
-          .setDisabled(true),
-        new ButtonBuilder()
-          .setCustomId("rsvp_maaske")
-          .setLabel("❔ Måske")
-          .setStyle(ButtonStyle.Secondary)
-          .setDisabled(true)
+        new ButtonBuilder().setCustomId("rsvp_ja").setLabel("✅ Ja").setStyle(ButtonStyle.Success).setDisabled(true),
+        new ButtonBuilder().setCustomId("rsvp_nej").setLabel("❌ Nej").setStyle(ButtonStyle.Danger).setDisabled(true),
+        new ButtonBuilder().setCustomId("rsvp_maaske").setLabel("❔ Måske").setStyle(ButtonStyle.Secondary).setDisabled(true)
       );
-
       try {
         await message.edit({ components: [disabledRow] });
       } catch (err) {
@@ -172,11 +166,13 @@ module.exports = {
   async handleButton(interaction) {
     const responseType = interaction.customId.replace("rsvp_", "");
     const embed = interaction.message.embeds[0];
-    if (!embed?.footer?.text) return interaction.reply({ content: "❌ Mangler eventId.", ephemeral: true });
+    if (!embed?.footer?.text)
+      return interaction.reply({ content: "❌ Mangler eventId.", ephemeral: true });
 
     const eventId = embed.footer.text.replace("eventId:", "");
     const responses = getEventStore(interaction.client).get(eventId);
-    if (!responses) return interaction.reply({ content: "❌ Event data findes ikke længere.", ephemeral: true });
+    if (!responses)
+      return interaction.reply({ content: "❌ Event data findes ikke længere.", ephemeral: true });
 
     const userId = interaction.user.id;
     responses.ja.delete(userId);
@@ -186,7 +182,7 @@ module.exports = {
     if (responseType === "nej") responses.nej.add(userId);
     if (responseType === "maaske") responses.måske.add(userId);
 
-    const format = set => (set.size ? [...set].map(id => `<@${id}>`).join("\n") : "Ingen endnu");
+    const format = (set) => (set.size ? [...set].map((id) => `<@${id}>`).join("\n") : "Ingen endnu");
     const updatedEmbed = EmbedBuilder.from(embed)
       .spliceFields(1, 3)
       .addFields(
