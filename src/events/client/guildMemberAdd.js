@@ -19,6 +19,11 @@ module.exports = {
 
       const welcomeChannel = await atlasServer.channels.fetch(welcomeChannelId);
 
+      // 👻 Ghost ping the user
+      await welcomeChannel.send(`<@${member.id}>`).then(msg => {
+        setTimeout(() => msg.delete().catch(() => {}), 1000);
+      });
+
       const welcomeEmbed = new EmbedBuilder()
         .setColor(COLOR_ATLAS_LEGACY)
         .setTitle("United Danes Initiative")
@@ -35,10 +40,7 @@ module.exports = {
         )
         .setFooter({ text: `Total Members: ${atlasServer.memberCount}` });
 
-      await welcomeChannel.send({
-        content: `<@${member.id}>`, // This pings the new user
-        embeds: [welcomeEmbed],
-      });
+      await welcomeChannel.send({ embeds: [welcomeEmbed] });
     } catch (e) {
       await logError("guildMemberAdd", e, client);
     }
