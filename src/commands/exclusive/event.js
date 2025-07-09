@@ -67,8 +67,7 @@ module.exports = {
     const title = interaction.fields.getTextInputValue("event_title");
     const date = interaction.fields.getTextInputValue("event_date");
     const time = interaction.fields.getTextInputValue("event_time");
-    const description =
-      interaction.fields.getTextInputValue("event_desc") || "Ingen beskrivelse.";
+    const description = interaction.fields.getTextInputValue("event_desc") || "Ingen beskrivelse.";
 
     // Parse date/time in user's timezone (Europe/Copenhagen)
     const dt = DateTime.fromFormat(
@@ -76,8 +75,24 @@ module.exports = {
       "dd-MM-yyyy HH:mm",
       { zone: "Europe/Copenhagen" }
     );
-    const eventDate = dt.toJSDate();
-    const ts = Math.floor(dt.toSeconds());
+
+    // Validate parsing
+    if (!dt.isValid) {
+      return interaction.reply({
+        content: "❌ Ugyldig dato eller tidspunkt. Brug format DD-MM-YYYY og HH:MM.",
+        ephemeral: true
+      });
+    }
+
+    const eventTimestampMs = dt.toMillis();
+    const eventDate = new Date(eventTimestampMs);
+    const tsSec = Math.floor(dt.toSeconds());
+    const nowMs = Date.now();
+
+    // Calculate delays
+    const reminderDelayMs = eventTimestampMs - nowMs - 30 * 60 * 1000;
+    const collectorDurationMsRaw = eventTimestampMs - nowMs - 40 * 60 * 1000;
+    const collectorDurationMs = collectorDurationMsRaw > 0 ? collectorDurationMsRaw : 0;
 
     const eventResponses = getEventStore(interaction.client);
     const eventId = `${interaction.channel.id}-${Date.now()}`;
@@ -87,10 +102,7 @@ module.exports = {
       .setTitle(`📅 ${title}`)
       .setDescription(description)
       .addFields(
-        {
-          name: "🗓️ Start tid",
-          value: `<t:${ts}:f> (<t:${ts}:R>)`,
-        },
+        { name: "🗓️ Start tid", value: `<t:${tsSec}:f> (<t:${tsSec}:R>)` },
         { name: "✅ Deltager", value: "Ingen endnu", inline: true },
         { name: "❌ Deltager ikke", value: "Ingen endnu", inline: true },
         { name: "❔ Måske", value: "Ingen endnu", inline: true }
@@ -99,49 +111,34 @@ module.exports = {
       .setTimestamp();
 
     const row = new ActionRowBuilder().addComponents(
-      new ButtonBuilder()
-        .setCustomId("rsvp_ja")
-        .setLabel("✅ Ja")
-        .setStyle(ButtonStyle.Success),
-      new ButtonBuilder()
-        .setCustomId("rsvp_nej")
-        .setLabel("❌ Nej")
-        .setStyle(ButtonStyle.Danger),
-      new ButtonBuilder()
-        .setCustomId("rsvp_maaske")
-        .setLabel("❔ Måske")
-        .setStyle(ButtonStyle.Secondary)
+      new ButtonBuilder().setCustomId("rsvp_ja").setLabel("✅ Ja").setStyle(ButtonStyle.Success),
+      new ButtonBuilder().setCustomId("rsvp_nej").setLabel("❌ Nej").setStyle(ButtonStyle.Danger),
+      new ButtonBuilder().setCustomId("rsvp_maaske").setLabel("❔ Måske").setStyle(ButtonStyle.Secondary)
     );
 
     const message = await interaction.reply({ embeds: [embed], components: [row], fetchReply: true });
 
-    // Reminder 30 minutes before
-    const now = Date.now();
-    const delay = eventDate.getTime() - now - 30 * 60 * 1000;
-    if (delay > 0) {
+    // Schedule reminder 30 minutes before
+    if (reminderDelayMs > 0) {
       setTimeout(async () => {
-        const responses = getEventStore(interaction.client).get(eventId);
+        const responses = eventResponses.get(eventId);
         for (const userId of responses.ja) {
           try {
             const user = await interaction.client.users.fetch(userId);
             await user.send(
-              `🔔 Påmindelse: **${title}** starter om 30 minutter: <t:${ts}:R> `.trim()
+              `🔔 Påmindelse: **${title}** starter om 30 minutter: <t:${tsSec}:R>`
             );
           } catch (err) {
             console.error("Fejl ved afsendelse af påmindelse:", err);
           }
         }
-      }, delay);
+      }, reminderDelayMs);
     }
 
-    // RSVP collector — close 40 minutes before the event starts
-    const closeTimestamp = eventDate.getTime() - 40 * 60 * 1000;
-    let collectorDuration = closeTimestamp - Date.now();
-    if (collectorDuration < 0) collectorDuration = 0;
-
+    // RSVP collector — close 40 minutes before start
     const collector = message.createMessageComponentCollector({
       componentType: ComponentType.Button,
-      time: collectorDuration
+      time: collectorDurationMs
     });
 
     collector.on("end", async () => {
@@ -190,11 +187,13 @@ module.exports = {
     if (responseType === "maaske") responses.måske.add(userId);
 
     const format = set => (set.size ? [...set].map(id => `<@${id}>`).join("\n") : "Ingen endnu");
-    const updatedEmbed = EmbedBuilder.from(embed).spliceFields(1, 3).addFields(
-      { name: "✅ Deltager", value: format(responses.ja), inline: true },
-      { name: "❌ Deltager ikke", value: format(responses.nej), inline: true },
-      { name: "❔ Måske", value: format(responses.måske), inline: true }
-    );
+    const updatedEmbed = EmbedBuilder.from(embed)
+      .spliceFields(1, 3)
+      .addFields(
+        { name: "✅ Deltager", value: format(responses.ja), inline: true },
+        { name: "❌ Deltager ikke", value: format(responses.nej), inline: true },
+        { name: "❔ Måske", value: format(responses.måske), inline: true }
+      );
     await interaction.update({ embeds: [updatedEmbed], components: interaction.message.components });
   }
 };
