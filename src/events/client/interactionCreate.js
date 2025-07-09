@@ -133,7 +133,7 @@ module.exports = {
                               { name: "Svar:", value: response }
                           )
                           .setColor(status === "✅ Udført" ? 0x4caf50 : 0xff4c4c)
-                          .setFooter({ text: "Tak for din tilbagemelding!" })
+                          .setFooter({ text: "Tak for din melding!" })
                           .setTimestamp();
 
                       await user.send({ embeds: [responseEmbed] });

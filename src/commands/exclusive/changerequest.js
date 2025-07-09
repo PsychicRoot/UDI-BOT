@@ -1,3 +1,4 @@
+
 const {
   SlashCommandBuilder,
   EmbedBuilder,
@@ -23,24 +24,23 @@ module.exports = {
 
       const request = interaction.options.getString("request");
       const user = interaction.user;
-      const channelId = "1392573031959887892"; // Target channel ID
+      const staffChannelId = "1392573031959887892"; // Staff review channel
+      const publicChannelId = "1392577211638218802"; // Public view-only channel
 
-      // Create an embed for the request
       const embed = new EmbedBuilder()
-        .setTitle("📢 New Suggestion")
+        .setTitle("📢 Nyt Ønske")
         .setDescription(request)
-        .setColor(0xffd700) // Gold color for visibility
+        .setColor(0xffd700)
         .addFields(
           { name: "Ønsket af", value: `${user.tag}`, inline: true },
           { name: "User ID", value: `${user.id}`, inline: true }
         )
         .setFooter({
-          text: "Change Request Submitted",
+          text: "Ønske modtaget",
           iconURL: user.displayAvatarURL(),
         })
         .setTimestamp();
 
-      // Add buttons for marking as done or not done
       const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
           .setCustomId("mark_done")
@@ -52,29 +52,29 @@ module.exports = {
           .setStyle(ButtonStyle.Danger)
       );
 
-      // Fetch the target channel and send the embed with the buttons
-      const targetChannel = interaction.client.channels.cache.get(channelId);
+      const staffChannel = interaction.client.channels.cache.get(staffChannelId);
+      const publicChannel = interaction.client.channels.cache.get(publicChannelId);
 
-      if (!targetChannel) {
+      if (!staffChannel || !publicChannel) {
         await interaction.editReply({
           content:
-            "Unable to find the channel to send the change request. Please contact an admin.",
+            "Kunne ikke finde en eller begge kanaler til at sende ønsket. Kontakt en admin.",
         });
         return;
       }
 
-      await targetChannel.send({ embeds: [embed], components: [row] });
+      await staffChannel.send({ embeds: [embed], components: [row] });
+      await publicChannel.send({ embeds: [embed] }); // No buttons for public
 
-      // Acknowledge the user
       await interaction.editReply({
         content:
-          "Your suggestion has been submitted successfully. Thank you for your feedback!",
+          "Dit ønske er blevet sendt til holdet og også delt offentligt. Tak for dit input!",
       });
     } catch (error) {
-      console.error("Error handling suggestion:", error);
+      console.error("Fejl under håndtering af ønske:", error);
       await interaction.editReply({
         content:
-          "An error occurred while submitting your suggestion. Please try again later.",
+          "Der opstod en fejl under afsendelse af dit ønske. Prøv igen senere.",
       });
     }
   },
