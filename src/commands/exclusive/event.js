@@ -69,7 +69,7 @@ module.exports = {
     const time = interaction.fields.getTextInputValue("event_time");
     const description = interaction.fields.getTextInputValue("event_desc") || "Ingen beskrivelse.";
 
-    // Parse date/time in user's timezone (Europe/Copenhagen)
+    // Parse date/time in Europe/Copenhagen time zone
     const dt = DateTime.fromFormat(
       `${date} ${time}`,
       "dd-MM-yyyy HH:mm",
@@ -112,7 +112,7 @@ module.exports = {
 
     const message = await interaction.reply({ embeds: [embed], components: [row], fetchReply: true });
 
-    // Schedule reminder 30 minutes before (or send immediately if less than 30m away)
+    // Schedule reminder 30 minutes before event
     if (reminderDelayMs > 0) {
       setTimeout(async () => {
         const responses = eventResponses.get(eventId);
@@ -126,7 +126,6 @@ module.exports = {
         }
       }, reminderDelayMs);
     } else if (eventTimestampMs > nowMs) {
-      // If the event is within the next 30 minutes, send reminder immediately
       const responses = eventResponses.get(eventId);
       for (const userId of responses.ja) {
         try {
@@ -140,7 +139,29 @@ module.exports = {
 
     // RSVP collector
     const collector = message.createMessageComponentCollector({ componentType: ComponentType.Button });
-    
+
+    // Stop collector 40 minutes before event (or immediately if too late)
+    if (closeDelayMs > 0) {
+      setTimeout(() => collector.stop(), closeDelayMs);
+    } else {
+      collector.stop();
+    }
+
+    // Disable RSVP buttons after collector stops
+    collector.on("end", async () => {
+      const disabledRow = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setCustomId("rsvp_ja").setLabel("✅ Ja").setStyle(ButtonStyle.Success).setDisabled(true),
+        new ButtonBuilder().setCustomId("rsvp_nej").setLabel("❌ Nej").setStyle(ButtonStyle.Danger).setDisabled(true),
+        new ButtonBuilder().setCustomId("rsvp_maaske").setLabel("❔ Måske").setStyle(ButtonStyle.Secondary).setDisabled(true)
+      );
+      try {
+        await message.edit({ components: [disabledRow] });
+      } catch (err) {
+        console.error("Kunne ikke deaktivere RSVP-knapperne:", err);
+      }
+    });
+  },
+
   // Handle button presses
   async handleButton(interaction) {
     const responseType = interaction.customId.replace("rsvp_", "");
