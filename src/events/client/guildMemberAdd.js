@@ -8,9 +8,13 @@ module.exports = {
     try {
       const welcomeChannelId = "1388966736367194233";
       const atlasServerId = "1388909264327938169";
+      const defaultRoleId = "1388913012961968239";
 
       const atlasServer = await client.guilds.cache.get(atlasServerId);
       await atlasServer.members.fetch();
+
+      // Add the default role to the new member
+      await member.roles.add(defaultRoleId);
 
       const welcomeChannel = await atlasServer.channels.fetch(welcomeChannelId);
 
