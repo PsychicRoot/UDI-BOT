@@ -6,6 +6,8 @@ const {
   ButtonBuilder,
   ButtonStyle,
 } = require("discord.js");
+const sqlite3 = require("sqlite3").verbose();
+const db = new sqlite3.Database("./tempvoice.db");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -24,8 +26,8 @@ module.exports = {
 
       const request = interaction.options.getString("request");
       const user = interaction.user;
-      const staffChannelId = "1392573031959887892"; // Staff review channel
-      const publicChannelId = "1392577211638218802"; // Public view-only channel
+      const staffChannelId = "1392573031959887892";
+      const publicChannelId = "1392577211638218802";
 
       const embed = new EmbedBuilder()
         .setTitle("📢 Nyt Ønske")
@@ -64,7 +66,18 @@ module.exports = {
       }
 
       await staffChannel.send({ embeds: [embed], components: [row] });
-      await publicChannel.send({ embeds: [embed] }); // No buttons for public
+      const publicMessage = await publicChannel.send({ embeds: [embed] });
+
+      // Store in the database for syncing later
+      db.run(
+        "INSERT OR REPLACE INTO suggestions (userId, channelId, messageId) VALUES (?, ?, ?)",
+        [user.id, publicChannelId, publicMessage.id],
+        (err) => {
+          if (err) {
+            console.error("Databasefejl ved indsættelse af forslag:", err.message);
+          }
+        }
+      );
 
       await interaction.editReply({
         content:
