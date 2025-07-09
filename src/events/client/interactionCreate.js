@@ -154,7 +154,29 @@ const {
   
                         await modalInteraction.update({ embeds: [updatedEmbed], components: [] });
   
-                        await modalInteraction.followUp({
+                        
+                        // ➕ Opdater også den offentlige besked hvis den findes
+                        db.get(
+                          `SELECT channelId, messageId FROM suggestions WHERE userId = ?`,
+                          [userId],
+                          async (err, row) => {
+                            if (err) {
+                              console.error("Fejl ved opslag i suggestions:", err.message);
+                              return;
+                            }
+                            if (row) {
+                              try {
+                                const publicChannel = await client.channels.fetch(row.channelId);
+                                const publicMessage = await publicChannel.messages.fetch(row.messageId);
+                                await publicMessage.edit({ embeds: [responseEmbed] });
+                              } catch (err) {
+                                console.error("Kunne ikke opdatere offentlig besked:", err.message);
+                              }
+                            }
+                          }
+                        );
+
+await modalInteraction.followUp({
                             content: `Svar sendt til ${user.tag} og anmodningen markeret som ${status}.`,
                             ephemeral: true,
                         });
