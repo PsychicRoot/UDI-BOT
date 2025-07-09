@@ -9,7 +9,18 @@ const {
   ComponentType,
   TextInputStyle
 } = require("discord.js");
-const { DateTime } = require("luxon"); // Timezone-aware date library
+const { DateTime } = require("luxon");
+
+// Helper to support timeouts longer than 2,147,483,647ms (~24.8 days)
+const MAX_TIMEOUT = 2_147_483_647;
+function safeTimeout(fn, delay) {
+  if (delay <= MAX_TIMEOUT) {
+    return setTimeout(fn, delay);
+  }
+  return setTimeout(() => {
+    safeTimeout(fn, delay - MAX_TIMEOUT);
+  }, MAX_TIMEOUT);
+}
 
 // Shared RSVP store
 function getEventStore(client) {
@@ -67,12 +78,10 @@ module.exports = {
     const time = interaction.fields.getTextInputValue("event_time");
     const description = interaction.fields.getTextInputValue("event_desc") || "Ingen beskrivelse.";
 
-    // Parse the date/time in Danish timezone
-    const dt = DateTime.fromFormat(
-      `${date} ${time}`,
-      "dd-MM-yyyy HH:mm",
-      { zone: "Europe/Copenhagen" }
-    );
+    const dt = DateTime.fromFormat(`${date} ${time}`, "dd-MM-yyyy HH:mm", {
+      zone: "Europe/Copenhagen"
+    });
+
     if (!dt.isValid) {
       return interaction.reply({
         content: "❌ Ugyldig dato eller tidspunkt. Brug format DD-MM-YYYY og HH:MM.",
@@ -80,15 +89,12 @@ module.exports = {
       });
     }
 
-    const eventTimestampMs = dt.toMillis();
     const tsSec = Math.floor(dt.toSeconds());
-
     const now = DateTime.now().setZone("Europe/Copenhagen");
 
     const reminderDelayMs = dt.diff(now, "milliseconds").milliseconds - 30 * 60 * 1000;
     const closeDelayMs = dt.diff(now, "milliseconds").milliseconds - 40 * 60 * 1000;
 
-    // Debug output
     console.log("🕓 Event time:", dt.toISO());
     console.log("🕒 Current time:", now.toISO());
     console.log("⏰ Reminder delay (ms):", reminderDelayMs);
@@ -116,11 +122,15 @@ module.exports = {
       new ButtonBuilder().setCustomId("rsvp_maaske").setLabel("❔ Måske").setStyle(ButtonStyle.Secondary)
     );
 
-    const message = await interaction.reply({ embeds: [embed], components: [row], fetchReply: true });
+    await interaction.reply({
+      embeds: [embed],
+      components: [row]
+    });
+    const message = await interaction.fetchReply();
 
-    // Schedule reminder 30 minutes before the event
+    // Reminder 30 min before
     if (reminderDelayMs > 0) {
-      setTimeout(async () => {
+      safeTimeout(async () => {
         const responses = eventResponses.get(eventId);
         for (const userId of responses.ja) {
           try {
@@ -132,7 +142,6 @@ module.exports = {
         }
       }, reminderDelayMs);
     } else if (dt > now) {
-      // Send immediate reminder if under 30 mins left
       const responses = eventResponses.get(eventId);
       for (const userId of responses.ja) {
         try {
@@ -144,17 +153,14 @@ module.exports = {
       }
     }
 
-    // Set up RSVP collector
+    // Disable buttons 40 min before event
     const collector = message.createMessageComponentCollector({ componentType: ComponentType.Button });
-
-    // Stop collector 40 minutes before event (or now if late)
     if (closeDelayMs > 0) {
-      setTimeout(() => collector.stop(), closeDelayMs);
+      safeTimeout(() => collector.stop(), closeDelayMs);
     } else {
       collector.stop();
     }
 
-    // Disable RSVP buttons when collector ends
     collector.on("end", async () => {
       const disabledRow = new ActionRowBuilder().addComponents(
         new ButtonBuilder().setCustomId("rsvp_ja").setLabel("✅ Ja").setStyle(ButtonStyle.Success).setDisabled(true),
