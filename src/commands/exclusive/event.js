@@ -140,28 +140,7 @@ module.exports = {
 
     // RSVP collector
     const collector = message.createMessageComponentCollector({ componentType: ComponentType.Button });
-
-    // Stop collector 40 minutes before event (or immediately if past)
-    if (closeDelayMs > 0) {
-      setTimeout(() => collector.stop(), closeDelayMs);
-    } else {
-      collector.stop();
-    }
-
-    collector.on("end", async () => {
-      const disabledRow = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId("rsvp_ja").setLabel("✅ Ja").setStyle(ButtonStyle.Success).setDisabled(true),
-        new ButtonBuilder().setCustomId("rsvp_nej").setLabel("❌ Nej").setStyle(ButtonStyle.Danger).setDisabled(true),
-        new ButtonBuilder().setCustomId("rsvp_maaske").setLabel("❔ Måske").setStyle(ButtonStyle.Secondary).setDisabled(true)
-      );
-      try {
-        await message.edit({ components: [disabledRow] });
-      } catch (err) {
-        console.error("Kunne ikke deaktivere RSVP-knapperne:", err);
-      }
-    });
-  },
-
+    
   // Handle button presses
   async handleButton(interaction) {
     const responseType = interaction.customId.replace("rsvp_", "");
