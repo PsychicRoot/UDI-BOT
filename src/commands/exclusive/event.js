@@ -9,7 +9,7 @@ const {
   ComponentType,
   TextInputStyle
 } = require("discord.js");
-const { DateTime } = require("luxon"); // For timezone-aware parsing
+const { DateTime } = require("luxon"); // Timezone-aware date library
 
 // Shared RSVP store
 function getEventStore(client) {
@@ -22,7 +22,6 @@ module.exports = {
     .setName("event")
     .setDescription("Opret en begivenhed med popup-indtastning"),
 
-  // Trigger modal
   async execute(interaction) {
     const modal = new ModalBuilder()
       .setCustomId("event_modal")
@@ -62,31 +61,38 @@ module.exports = {
     await interaction.showModal(modal);
   },
 
-  // Handle modal submission
   async handleModalSubmit(interaction) {
     const title = interaction.fields.getTextInputValue("event_title");
     const date = interaction.fields.getTextInputValue("event_date");
     const time = interaction.fields.getTextInputValue("event_time");
     const description = interaction.fields.getTextInputValue("event_desc") || "Ingen beskrivelse.";
 
-    // Parse date/time in Europe/Copenhagen time zone
+    // Parse the date/time in Danish timezone
     const dt = DateTime.fromFormat(
       `${date} ${time}`,
       "dd-MM-yyyy HH:mm",
       { zone: "Europe/Copenhagen" }
     );
     if (!dt.isValid) {
-      return interaction.reply({ content: "❌ Ugyldig dato eller tidspunkt. Brug format DD-MM-YYYY og HH:MM.", ephemeral: true });
+      return interaction.reply({
+        content: "❌ Ugyldig dato eller tidspunkt. Brug format DD-MM-YYYY og HH:MM.",
+        ephemeral: true
+      });
     }
 
     const eventTimestampMs = dt.toMillis();
-    const eventDate = new Date(eventTimestampMs);
     const tsSec = Math.floor(dt.toSeconds());
-    const nowMs = Date.now();
 
-    // Calculate delays
-    const reminderDelayMs = eventTimestampMs - nowMs - 30 * 60 * 1000;
-    const closeDelayMs = eventTimestampMs - nowMs - 40 * 60 * 1000;
+    const now = DateTime.now().setZone("Europe/Copenhagen");
+
+    const reminderDelayMs = dt.diff(now, "milliseconds").milliseconds - 30 * 60 * 1000;
+    const closeDelayMs = dt.diff(now, "milliseconds").milliseconds - 40 * 60 * 1000;
+
+    // Debug output
+    console.log("🕓 Event time:", dt.toISO());
+    console.log("🕒 Current time:", now.toISO());
+    console.log("⏰ Reminder delay (ms):", reminderDelayMs);
+    console.log("🚫 Button close delay (ms):", closeDelayMs);
 
     const eventResponses = getEventStore(interaction.client);
     const eventId = `${interaction.channel.id}-${Date.now()}`;
@@ -112,7 +118,7 @@ module.exports = {
 
     const message = await interaction.reply({ embeds: [embed], components: [row], fetchReply: true });
 
-    // Schedule reminder 30 minutes before event
+    // Schedule reminder 30 minutes before the event
     if (reminderDelayMs > 0) {
       setTimeout(async () => {
         const responses = eventResponses.get(eventId);
@@ -125,7 +131,8 @@ module.exports = {
           }
         }
       }, reminderDelayMs);
-    } else if (eventTimestampMs > nowMs) {
+    } else if (dt > now) {
+      // Send immediate reminder if under 30 mins left
       const responses = eventResponses.get(eventId);
       for (const userId of responses.ja) {
         try {
@@ -137,17 +144,17 @@ module.exports = {
       }
     }
 
-    // RSVP collector
+    // Set up RSVP collector
     const collector = message.createMessageComponentCollector({ componentType: ComponentType.Button });
 
-    // Stop collector 40 minutes before event (or immediately if too late)
+    // Stop collector 40 minutes before event (or now if late)
     if (closeDelayMs > 0) {
       setTimeout(() => collector.stop(), closeDelayMs);
     } else {
       collector.stop();
     }
 
-    // Disable RSVP buttons after collector stops
+    // Disable RSVP buttons when collector ends
     collector.on("end", async () => {
       const disabledRow = new ActionRowBuilder().addComponents(
         new ButtonBuilder().setCustomId("rsvp_ja").setLabel("✅ Ja").setStyle(ButtonStyle.Success).setDisabled(true),
@@ -162,7 +169,6 @@ module.exports = {
     });
   },
 
-  // Handle button presses
   async handleButton(interaction) {
     const responseType = interaction.customId.replace("rsvp_", "");
     const embed = interaction.message.embeds[0];
