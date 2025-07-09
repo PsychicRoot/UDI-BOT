@@ -38,7 +38,7 @@ module.exports = {
         .setDescription(
           `Velkommen \`${member.user.username}\` Du er nu trådt ind i United Danes Initiative (UDI) – et dansk fællesskab i Star Citizen, bygget på sammenhold, respekt og ægte rumhygge.\n\nHer samles vikinger af stjernestøv – nogle miner, nogle kæmper, andre handler, eskorterer, udforsker eller bare hænger ud.\n\n👉 Husk at læse <#${rulesChannelId}> for at kende vores fælles spilleregler.`
         )
-        .setFooter({ text: `Total Members: ${atlasServer.memberCount}` });
+        .setFooter({ text: `Medlemmer: ${atlasServer.memberCount}` });
 
       await welcomeChannel.send({ embeds: [welcomeEmbed] });
     } catch (e) {
