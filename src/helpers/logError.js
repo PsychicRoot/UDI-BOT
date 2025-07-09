@@ -1,7 +1,7 @@
 module.exports = {
   async logError(functionName, error, client) {
-    const atlasServerId = "1098634387127537816";
-    const errorLogChannelId = "1308911282660970516";
+    const atlasServerId = "1388909264327938169";
+    const errorLogChannelId = "1392176970317430964";
     const errorChannel = await client.guilds.cache
       .get(atlasServerId)
       .channels.cache.get(errorLogChannelId);
