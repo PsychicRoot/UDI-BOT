@@ -9,6 +9,7 @@ const {
   ComponentType,
   TextInputStyle
 } = require("discord.js");
+const { DateTime } = require("luxon"); // For timezone-aware parsing
 
 // Shared RSVP store
 function getEventStore(client) {
@@ -69,10 +70,14 @@ module.exports = {
     const description =
       interaction.fields.getTextInputValue("event_desc") || "Ingen beskrivelse.";
 
-    // Parse European date DD-MM-YYYY
-    const [day, month, year] = date.split("-");
-    const eventDate = new Date(`${year}-${month}-${day}T${time}:00`);
-    const ts = Math.floor(eventDate.getTime() / 1000);
+    // Parse date/time in user's timezone (Europe/Copenhagen)
+    const dt = DateTime.fromFormat(
+      `${date} ${time}`,
+      "dd-MM-yyyy HH:mm",
+      { zone: "Europe/Copenhagen" }
+    );
+    const eventDate = dt.toJSDate();
+    const ts = Math.floor(dt.toSeconds());
 
     const eventResponses = getEventStore(interaction.client);
     const eventId = `${interaction.channel.id}-${Date.now()}`;
@@ -94,9 +99,18 @@ module.exports = {
       .setTimestamp();
 
     const row = new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setCustomId("rsvp_ja").setLabel("✅ Ja").setStyle(ButtonStyle.Success),
-      new ButtonBuilder().setCustomId("rsvp_nej").setLabel("❌ Nej").setStyle(ButtonStyle.Danger),
-      new ButtonBuilder().setCustomId("rsvp_maaske").setLabel("❔ Måske").setStyle(ButtonStyle.Secondary)
+      new ButtonBuilder()
+        .setCustomId("rsvp_ja")
+        .setLabel("✅ Ja")
+        .setStyle(ButtonStyle.Success),
+      new ButtonBuilder()
+        .setCustomId("rsvp_nej")
+        .setLabel("❌ Nej")
+        .setStyle(ButtonStyle.Danger),
+      new ButtonBuilder()
+        .setCustomId("rsvp_maaske")
+        .setLabel("❔ Måske")
+        .setStyle(ButtonStyle.Secondary)
     );
 
     const message = await interaction.reply({ embeds: [embed], components: [row], fetchReply: true });
