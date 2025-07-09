@@ -40,7 +40,7 @@ module.exports = {
           `Pilot \`${member.user.username}\`, du er nu en del af en organisation bygget på **sammenhold, respekt** og ægte **rumhygge**.\n\n` +
           `🌌 Hos UDI finder du stjernestøvsdækkede vikinger der miner, kæmper, handler, eskorterer, udforsker – eller bare nyder udsigten fra cockpittet.\n\n` +
           `📜 **Regler & Retningslinjer:** Husk at læse <#${rulesChannelId}> for at sikre et godt rumklima for alle medlemmer.\n\n` +
-          `💬 **Feedback eller idéer?** Brug \`/ønsker\` for at indsende dine tanker – vi værdsætter alles input i vores fælles rejse gennem ’verse.\n\n` +
+          `💬 **Feedback eller idéer?** Brug \`/ønsker\` for at indsende dine tanker – vi værdsætter alles input i vores fælles rejse gennem ’verset.\n\n` +
           `🛰️ _Vi ses i Stanton, Pyro eller hvor end stjernene fører os!_`
         )
         .setFooter({ text: `👥 Medlemmer ombord: ${atlasServer.memberCount}` });
