@@ -35,7 +35,10 @@ module.exports = {
         )
         .setFooter({ text: `Total Members: ${atlasServer.memberCount}` });
 
-      await welcomeChannel.send({ embeds: [welcomeEmbed] });
+      await welcomeChannel.send({
+        content: `<@${member.id}>`, // This pings the new user
+        embeds: [welcomeEmbed],
+      });
     } catch (e) {
       await logError("guildMemberAdd", e, client);
     }
