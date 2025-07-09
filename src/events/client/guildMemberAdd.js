@@ -26,19 +26,24 @@ module.exports = {
 
       const welcomeEmbed = new EmbedBuilder()
         .setColor(COLOR_ATLAS_LEGACY)
-        .setTitle("United Danes Initiative")
+        .setTitle("🪐 United Danes Initiative – Velkommen ombord, Pilot!")
         .setURL("https://robertsspaceindustries.com/en/orgs/UNITDANES")
         .setThumbnail(
           "https://robertsspaceindustries.com/media/fp4h0bym118mxr/logo/UNITDANES-Logo.png"
         )
         .setAuthor({
-          name: `${member.user.globalName}`,
-          iconURL: `${member.user.displayAvatarURL()}`,
+          name: member.user.globalName,
+          iconURL: member.user.displayAvatarURL(),
         })
         .setDescription(
-          `Velkommen \`${member.user.username}\` Du er nu trådt ind i United Danes Initiative (UDI) – et dansk fællesskab i Star Citizen, bygget på sammenhold, respekt og ægte rumhygge.\n\nHer samles vikinger af stjernestøv – nogle miner, nogle kæmper, andre handler, eskorterer, udforsker eller bare hænger ud.\n\n👉 Husk at læse <#${rulesChannelId}> for at kende vores fælles spilleregler.`
+          `🛸 **Velkommen til _United Danes Initiative (UDI)_ – et dansk fællesskab i Star Citizen!**\n\n` +
+          `Pilot \`${member.user.username}\`, du er nu en del af en organisation bygget på **sammenhold, respekt** og ægte **rumhygge**.\n\n` +
+          `🌌 Hos UDI finder du stjernestøvsdækkede vikinger der miner, kæmper, handler, eskorterer, udforsker – eller bare nyder udsigten fra cockpittet.\n\n` +
+          `📜 **Regler & Retningslinjer:** Husk at læse <#${rulesChannelId}> for at sikre et godt rumklima for alle medlemmer.\n\n` +
+          `💬 **Feedback eller idéer?** Brug \`/ønsker\` for at indsende dine tanker – vi værdsætter alles input i vores fælles rejse gennem ’verse.\n\n` +
+          `🛰️ _Vi ses i Stanton, Pyro eller hvor end stjernene fører os!_`
         )
-        .setFooter({ text: `Medlemmer: ${atlasServer.memberCount}` });
+        .setFooter({ text: `👥 Medlemmer ombord: ${atlasServer.memberCount}` });
 
       await welcomeChannel.send({ embeds: [welcomeEmbed] });
     } catch (e) {
