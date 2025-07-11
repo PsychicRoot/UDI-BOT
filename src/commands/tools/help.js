@@ -8,29 +8,45 @@ module.exports = {
   async execute(interaction) {
     try {
       const embed = new EmbedBuilder()
-        .setTitle("📖 Bot Kommando Hjælp / Bot Commands Help")
-        .setDescription("Her er en liste over tilgængelige kommandoer og hvad de gør")
+        .setTitle("📖 Bot Kommando Hjælp")
+        .setDescription("Her er en liste over tilgængelige kommandoer og hvad de gør:")
         .setColor(0x00aaff)
         .addFields(
           {
             name: "/legalcommodities",
-            value: "Viser priser og info for lovlige varer i Star Citizen.",
+            value: "Viser information om lovlige varer.",
           },
           {
             name: "/illegalcommodities",
-            value: "Viser priser og info for ulovlige varer i Star Citizen.",
+            value: "Viser information om ulovlige varer.",
           },
           {
-            name: "/changelogs",
-            value: "Viser de seneste ændringslogs for botten.",
+            name: "/mining",
+            value: "Giver detaljer om minedrift og relevante materialer.",
           },
           {
-            name: "/music <command>",
-            value: "Musikafspilning og kontrolkommandoer.",
+            name: "/refuel",
+            value: "Viser hvor du kan finde refuel points på en given planet/måne.",
           },
           {
-            name: "/suggestion",
-            value: "Send forslag til ændringer i botten.",
+            name: "/refreshcommodities",
+            value: "Opdaterer varedata og priser.",
+          },
+          {
+            name: "/ønsker",
+            value: "Sender en ændringsanmodning til leder holdet.",
+          },
+          {
+            name: "/collectitems",
+            value: "Lister indsamlede genstande og deres lokationer.",
+          },
+          {
+            name: "/event",
+            value: "Viser planlagte begivenheder og detaljer.",
+          },
+          {
+            name: "/finditem",
+            value: "Henter information om en specifik genstand.",
           }
         )
         .setFooter({
@@ -41,9 +57,9 @@ module.exports = {
 
       await interaction.reply({ embeds: [embed] });
     } catch (error) {
-      console.error("Error displaying help command:", error);
+      console.error("Fejl ved visning af help kommando:", error);
       await interaction.reply({
-        content: "Der opstod en fejl under hentning af hjælpeinformationen. Prøv igen senere.\nAn error occurred while fetching the help information. Please try again later.",
+        content: "Der opstod en fejl under hentning af hjælpeinformationen. Prøv igen senere.",
         ephemeral: true,
       });
     }
