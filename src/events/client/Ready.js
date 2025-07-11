@@ -39,6 +39,11 @@ module.exports = {
         name: "Velkommen!",
         url: "https://www.twitch.tv/starcitizen", // Streaming URL
       },
+      {
+        type: ActivityType.Streaming,
+        name: "Har du nogle ønsker? Brug vores /ønsker kommando!",
+        url: "https://www.twitch.tv/starcitizen", // Streaming URL
+      },
     ];
 
     // Set an interval to update the bot's status every 5 seconds
